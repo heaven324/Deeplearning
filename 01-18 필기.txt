@@ -1,0 +1,477 @@
+﻿■ 4장의 목차
+
+	1. 오차함수 : 예상값과 실제값의 오차를 구하기 위해 필요한 함수
+	2. 미니배치 : 신경망 학습시 한장씩 처리하는것보다 배치로 처리하는게 학시브이 더 빠르기 때문이다.
+	3. 수치미분 : 신경망을 학습 시킬 때 "가중치 = 가중치 - 기울기" 의 공식으로 가중치를 갱신해
+		      나가는데 이때 기울기를 구하려면 미분을 해야한다.
+
+	이 3가지를 통해서 3층 신경망을 학습을 시키는 챕터가 4장의 내용
+
+
+문제 121. 아래의 비용함수를 시각화 하시오 !
+
+	y = x**2 + 4**2
+
+	구글에서 y = x^2 + 4^2 로 검색창에 입력한다.
+
+
+
+
+문제 122. 아래의 그래프를 구글에서 시각화 하시오 !
+
+	f(x0, x1) = x0**2 + x1**2
+
+	구글에서 z = x^2 + y^2로 검색창에 입력한다.
+
+
+
+문제 123. 아래의 비용함수를 만들고 이 비용함수의 x = 6인 지점에서의 미분계수(기울기)를 손으로 구하시오 !
+
+	y = 4x^2 +7^2
+
+	답 : 48
+
+
+
+문제 124. 위의 식을 loss3라는 비용함수로 만들고 loss3 함수를 파이썬으로 미분해서 x = 6인 지점의 
+	  미분계수(기울기) 를 구하시오 !
+
+	def numerical_diff(f,x):
+	    h = 1e-4
+	    return (f(x+h) - f(x-h)) / (2*h)
+	
+	def loss3(x):
+	    return 4*(x**2) + 7**2
+	
+	print(numerical_diff(loss3,6))
+	
+	47.99999999988813
+
+		※ 컴퓨터로는 진정한 미분을 구현할 수가 없기 때문에 오차가 발생한다.
+
+			왜?
+				1. 극한값을 구현하기가 어렵다(limit)
+				2. 할선의 방정식의 기울기로 미분함수를 만들어야 하기 때문이다.
+
+
+		지금까지 구현한 비용함수는 3차원에 해당하는 비용함수 였다.
+		즉 W(가중치)를 하나만 두고 만든 함수였다.
+		그런데, 신경망에 들어가는 가중치는 W(가중치)가 W1하나만이 아니라 W0도 있고 W2도 있고
+		여러개의 W가 있을 수 있기 때문에 비용함수가 2차원을 넘어설 수 있다.
+
+	2차원그래프가 아니라 3차원 그래프를 미분할 때 사용한 미분방법이 ?
+	
+
+
+
+★ 편미분 (p 125)
+
+	"변수가 2개 이상인 함수를 미분할 때 미분 대상 변수 외에 나머지 변수를 상수처럼 고정시켜 미분하는
+	 것을 편미분이라고 한다"
+
+	f(x0, x1) = x0**2 + x1**2
+	f(w0, w1) = w0**2 + w1**2
+	그림 4-_-4
+
+
+
+문제 125. 손으로 위의 공식을 먼저 편미분을 수행하시오 !
+
+	f(x0, x1) = x0**2 + x1**2 함수를 편미분 하는데
+	x0 = 3, x1 = 4 일 때 x0에 대해서 편미분 하시오 !
+
+	df/dx0(3,4) = 6
+	df/dx1(3,4) = 8
+
+
+
+
+문제 126. f(x0, x1) = x0**2 + x1**2 함수를 편미분 하는데 x0 = 3, x1 = 4 일 때 x0에 대해서 편미분을 
+	  파이썬으로 하시오 !
+
+	def numerical_diff(f,x):
+	    h = 1e-4
+	    return (f(x+h) - f(x-h)) / (2*h)
+	
+	def loss3(x0):
+	    return x0**2 + 4**2
+	
+	print(numerical_diff(loss3, 3))
+	
+	6.00000000000378
+
+
+
+
+문제 127. f(x0, x1) = x0**2 + x1**2 함수를 편미분 하는데 x0 = 3, x1 = 4 일 때 x1에 대해서 편미분을 
+	  파이썬으로 하시오 !
+
+	def numerical_diff(f,x):
+	    h = 1e-4
+	    return (f(x+h) - f(x-h)) / (2*h)
+	
+	def loss3(x1):
+	    return 3**2 + x1**2
+	
+	print(numerical_diff(loss3, 4))
+
+	7.999999999999119
+
+
+
+
+문제 128. 위에서는 f(x0, x1) = x0**2 + x1**2 함수를 편미분하는것을 각각 수행했는데 이번에는 편미분이 
+	  한번에 수행되게끔 코드를 작성하시오 !
+
+	import numpy as np
+	
+	def loss_func(x):
+	    return x[0]**2 + x[1]**2
+	
+	def numerical_gradient(f,x):
+	    h = 1e-4
+	    grad = np.zeros_like(x)
+	    for i in range(x.size):
+	        dummy = x[i]
+	        x[i] = dummy +h
+	        fxh1 = f(x)
+	        x[i] = dummy - h
+	        fxh2 = f(x)
+	        grad[i] = (fxh1 - fxh2) / (2*h)
+	    return grad
+	
+	x = np.array([3.0, 4.0])
+	print(numerical_gradient(loss_func, x))
+
+	[ 6.  8.]
+
+
+
+문제 129. 아래의 x0, x1지점에서의 기울기를 각각 구하시오 !
+
+	x1 = np.array([3.0, 4.0])
+	x2 = np.array([0.0, 2.0])
+	x3 = np.array([3.0, 0.0])
+	
+	import numpy as np
+	
+	def loss_func(x):
+	    return x[0]**2 + x[1]**2
+	
+	def numerical_gradient(f,x):
+	    h = 1e-4
+	    grad = np.zeros_like(x)
+	    for i in range(x.size):
+	        dummy = x[i]
+	        x[i] = dummy +h
+	        fxh1 = f(x)
+	        x[i] = dummy - h
+	        fxh2 = f(x)
+	        grad[i] = (fxh1 - fxh2) / (2*h)
+	    return grad
+	
+	print(numerical_gradient(loss_func, x1))
+	print(numerical_gradient(loss_func, x2))
+	print(numerical_gradient(loss_func, x3))
+
+	[ 6.  8.]
+	[ 0.  4.]
+	[ 6.  0.]
+
+
+
+
+
+
+★ 경사하강법
+
+	" 특정 가중치의 위치에서 기울기를 빼서 점차 global minima로 진행하는 학습방법 "
+
+	경사 하강법 식 : 
+			그림 4-_-5
+
+
+		가중치 = 가중치 - 러닝레이트 * 기울기
+
+		w0 = w0 - 학습률* (∂비용함수 / ∂w0 )
+		w1 = w1 - 학습률* (∂비용함수 / ∂w1 )
+		학습률 ?  한번의 학습으로 얼마만큼 학습해야 할지 즉 매개변수 값을 얼마나 갱신하느냐를 
+			  정하는 것
+
+		학습률 값은 0.01 이나 0.001 등 미리 특정 값으로 정해두어야 하는데, 일반적으로 이 값이 너무
+		크거나 작으면 '좋은 장소'를 찾아갈 수 없다.
+
+		신경망 학습에서는 보통 이 학습률을 변경하면서 올바르게 학습하고 있는지를 확인하면서 
+		진행된다.
+
+
+
+문제 130. 책 131페이지에 나오는 경사 하상 함수 gradient_descent 함수를 생성하시오 !
+
+	def gradient_descent(f, init_x, lr=0.01, step_num=100):
+	    x = init_x
+	    for i in range(step_num):
+	        grad = numerical_gradient(f,x)
+	        x -= lr*grad
+	    return x
+
+
+
+
+문제 131. 위에서 만든 gradient_descent 함수를 가지고 x[0] = 3.0, x[1] = 4.0 인 지점에서 학습을 100번 
+	  수행했을 때 global minima에 도착하는지 확인하시오 !
+
+	x = np.array([3.0, 4.0])
+	
+	import numpy as np
+	
+	def loss_func(x):
+	    return x[0]**2 + x[1]**2
+	
+	def numerical_gradient(f,x):
+	    h = 1e-4
+	    grad = np.zeros_like(x)
+	    for i in range(x.size):
+	        dummy = x[i]
+	        x[i] = dummy +h
+	        fxh1 = f(x)
+	        x[i] = dummy - h
+	        fxh2 = f(x)
+	        grad[i] = (fxh1 - fxh2) / (2*h)
+	    return grad
+	
+	def gradient_descent(f, init_x, lr=0.01, step_num=100):
+	    x = init_x
+	    for i in range(step_num):
+	        grad = numerical_gradient(f,x)
+	        x -= lr*grad
+	    return x
+	
+	print(gradient_descent(loss_func, x))
+
+	[ 0.39352177  0.52614132]
+
+
+
+
+문제 132. 학습율을 0.1로 변경해서 수행해 보시오 !
+
+	x = np.array([3.0, 4.0])
+	
+	import numpy as np
+	
+	def loss_func(x):
+	    return x[0]**2 + x[1]**2
+	
+	def numerical_gradient(f,x):
+	    h = 1e-4
+	    grad = np.zeros_like(x)
+	    for i in range(x.size):
+	        dummy = x[i]
+	        x[i] = dummy +h
+	        fxh1 = f(x)
+	        x[i] = dummy - h
+	        fxh2 = f(x)
+	        grad[i] = (fxh1 - fxh2) / (2*h)
+	    return grad
+	
+	def gradient_descent(f, init_x, lr=0.01, step_num=100):
+	    x = init_x
+	    for i in range(step_num):
+	        grad = numerical_gradient(f,x)
+	        x -= lr*grad
+	    return x.round()
+	
+	print(gradient_descent(loss_func, x, 0.1))
+
+
+
+
+문제 133. 러닝 레이트(학습률)을 크게 주고 학습을 하면 결과가 어떻게 나오는지 확인하고 러닝 레이트(학습률)을 
+	  작게 주고 학습을 하면 결과가 어떻게 나오는지 확인하시오 !
+
+	#1. 학습률 : 10 ----> ?
+	#2. 학습률 : 1e-10 -----> ?
+	
+	x = np.array([3.0, 4.0])
+	
+	import numpy as np
+	
+	def loss_func(x):
+	    return x[0]**2 + x[1]**2
+	
+	def numerical_gradient(f,x):
+	    h = 1e-4
+	    grad = np.zeros_like(x)
+	    for i in range(x.size):
+	        dummy = x[i]
+	        x[i] = dummy +h
+	        fxh1 = f(x)
+	        x[i] = dummy - h
+	        fxh2 = f(x)
+	        grad[i] = (fxh1 - fxh2) / (2*h)
+	    return grad
+	
+	def gradient_descent(f, init_x, lr=0.01, step_num=100):
+	    x = init_x
+	    for i in range(step_num):
+	        grad = numerical_gradient(f,x)
+	        x -= lr*grad
+	    return x
+	
+	print(gradient_descent(loss_func, x, 10))
+	# print(gradient_descent(loss_func, x, lr2))
+	
+	[  2.58983747e+13  -1.24261502e+12]
+	[ 2.98999994  3.98999992]
+
+
+
+
+
+
+
+
+★ 위에서 배운 3가지 방법으로 3층 신경망을 학습 시키는 방법 구현
+
+	1. 오차함수
+	2. 미니배치
+	3. 수치미분(편미분)
+
+
+
+
+☆ 학습이 스스로 되는 3층 신경망 구현
+
+	
+
+
+문제 134. 2 x 3 행렬을 생성하는데 값은 랜덤 값으로 생성되게 하시오 !
+
+	import numpy as np
+	
+	w = np.random.randn(2,3)
+	print(w)
+
+	[[-0.52436211 -0.18096486  0.4574922 ]
+	 [ 0.35155406 -0.25271191 -1.63404372]]
+
+
+
+
+문제 135. 위에서 구한 w값으로 아래의 입력값과의 행렬 내적을 출력하시오 !
+
+	import numpy as np
+	
+	w = np.random.randn(2,3)
+	x = np.array([0.6, 0.9])
+	
+	print(np.dot(x,w))
+	
+	[-0.69005445  0.74740697  1.40580175]
+
+
+
+문제 136.  문제 134번 코드를 __init__라는 함수로 생성하시오 !
+
+	def __init__():
+	    w = np.random.randn(2,3)
+	    return w
+	
+	print(__init__())
+
+	[[-0.22429096 -0.87969553 -1.33996677]
+	 [-0.52800461  0.21629998 -0.84615578]]
+
+
+
+
+문제 137. 위에서 만든 가중치와 아래의 입력값을 받아 행렬을 내적하는 predict이라는 함수를 만드시오 !
+
+	x = np.array([0.6, 0.9])
+	w = __init__()
+	
+	def predict(x, w):
+	    return np.dot(x, w)
+	
+	print(predict(x,w))
+	
+	[-1.19477317  0.88869325  1.80707382]
+
+
+
+
+문제 138. 위의 predict 함수에 나온 결과를 softmax출력층 함수에 통과시킨 결과를 출력하시오 !
+
+	def __init__():
+	    w = np.random.randn(2,3)
+	    return w
+	
+	def predict(x, w):
+	    return np.dot(x, w)
+	
+	def softmax(a):
+	    c = np.max(a)
+	    minus = a - c
+	    exp_a = np.exp(minus)
+	    sum_exp_a = np.sum(exp_a)
+	    y = exp_a / sum_exp_a
+	    return y
+	
+	x = np.array([0.6, 0.9])
+	w = __init__()
+	
+	print(softmax(predict(x,w)))
+	
+	[ 0.40787945  0.1027099   0.48941065]
+
+
+
+
+문제 139. 위에서 출력된 소프트맥스 함수의 결과와 아래의 target값과의 오차를 출력하기위해 
+	  cross_entropy_error함수를 생성하고 cross_entropy_error함수를 통과한 결과를 출력하시오 !
+
+	def __init__():
+	    w = np.random.randn(2,3)
+	    return w
+	
+	def predict(x, w):
+	    return np.dot(x, w)
+	
+	def softmax(a):
+	    c = np.max(a)
+	    minus = a - c
+	    exp_a = np.exp(minus)
+	    sum_exp_a = np.sum(exp_a)
+	    y = exp_a / sum_exp_a
+	    return y
+	
+	def cross_entropy_error(x,t):
+	    delta = 1e-7
+	    return -np.sum(t*np.log(x+delta))
+	
+	x = np.array([0.6, 0.9])
+	w = __init__()
+	y = softmax(predict(x,w))
+	t = np.array([0, 0, 1])
+	
+	print(cross_entropy_error(y, t))
+
+	0.575857971144
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

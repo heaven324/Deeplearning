@@ -1,0 +1,78 @@
+﻿1. 
+db.emp.aggregate([{$group:{_id:null, count:{$sum:1}}}])
+
+
+2. 
+db.emp.find( {deptno:{$all:[10]}}, {_id:0, empno:1, ename:1, sal:1} )
+
+
+3. 
+db.emp.find( {sal:{$all:[3000]}}, {_id:0, ename:1, sal:1, job:1} )
+
+
+4. 
+db.emp.find( {sal:{$gte:2000}}, {_id:0, ename:1, sal:1, job:1} )
+
+
+5.
+db.emp.find( {job:{$ne:'SALESMAN'}}, {_id:0, ename:1, job:1} )
+
+
+6.
+db.emp.find( {sal:{$lte:3000}}, {_id:0, ename:1, sal:1} )
+
+
+7. 
+db.emp.find( {}, {_id:0, ename:1, sal:1} ).sort( {sal:-1} )
+
+
+8.
+db.emp.find( {job:{$eq:'SALESMAN'}}, {_id:0, ename:1, sal:1, job:1} ).sort( {sal:1} )
+
+
+9.
+db.emp.find( {$and: [ {sal:{$gte:1000, $lte:3000}} ] }, {_id:0, ename:1, sal:1})
+
+
+10.
+db.emp.find( {$or: [ {empno:{$eq:7788}}, {empno:{$eq:7902}} ] }, {_id:0, empno:1, ename:1, sal:1})
+
+
+11.
+db.emp.distinct('deptno')
+
+
+12.
+db.emp.count()
+
+
+13.
+db.emp.count( {job:'SALESMAN'} )
+
+
+14.
+db.emp.count( {sal:{$gte:3000}})
+
+
+15.
+db.emp.find( {} , { _id:0, sal:1 } ).sort( {sal:-1} ).limit(1)
+
+
+16.
+db.emp.find( {job:'SALESMAN'} , { _id:0, sal:1 } ).sort( {sal:-1} ).limit(1)
+
+
+17.
+db.emp.aggregate( [ {$group: {_id:null, total:{$sum:'$sal'}}}])
+
+
+18.
+db.emp.aggregate( [{$match: {job:'SALESMAN'}}, {$group: {_id:0, total:{$sum:'$sal'} } } ] )
+
+
+19.
+db.emp.aggregate( [{$match: {deptno:30}}, {$group: {_id:0, max:{$max:'$sal'} } } ] )
+
+
+20.
+db.emp.aggregate( [ {$group: {_id:'$deptno' , total:{$sum:'$sal'} } } ] )

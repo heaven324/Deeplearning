@@ -1,0 +1,668 @@
+﻿■ 딥러닝 수업 
+
+	인공지능의 눈 ?  cnn
+
+		사진속의 사람, 동물 등을 구별할 수 있다.
+
+		다음 카카오 로드뷰에서 사람 얼굴이나 차번호등은 개인정보 보호법상 반드시 모자이크 처리를
+		해야하는데 이것을 일일히 사람이 할 수 없다.
+		그래서 컴퓨터에게 모자이크 처리를 하라고 시켜야 한다.
+
+		딥러닝 기술로 할 수 있다.
+
+
+		제조업에서 만드는 제품들의 불량 여부를 확인하는 직업인 품질관리사의 롤을 컴퓨터가 대신할 수 있다.
+		관련 영상 : https://www.youtube.com/watch?v=cYDDowrozNI
+
+
+	인공지능의 입과 귀 ?  rnn
+
+		변호사가 되기 위해 봐야할 법률 책 ----> 컴퓨터에 넣고 학습
+
+		판례 ------> 컴퓨터 ------> 판결
+
+		인공지능 변호사
+
+
+
+
+
+■ 딥러닝 수업 목차
+
+	1장. 이 책을 보기 위해 필요한 파이썬 기본 문법
+
+	2장. 퍼셉트론 ( 신경망의 하나의 세포를 컴퓨터로 구현 )
+
+	3장. 인공 신경망 ( 신경망의 활성화 함수, 3층 신경망 구현 )
+
+	4장. 인공 신경망 학습 시킴 ( 손실 (오차) 함수, 수치 미분, 경사하강법, 학습 알고리즘 구현)
+
+	5장. 오차 역전파 ( 계산 그래프, 연쇄법칙, 역전파 )
+
+	6장. 신경망을 학습시키는 여러 기술들 소개
+	     (경사 하강법의 종류, 배치 정규화, 드롭아웃)
+
+	7장. CNN ( 합성곱 신경망 ) 
+		사진을 신경망에 입력해서 이 사진이 어떤 사진인지 컴퓨터가 알아 맞히게 하는 방법을 구현
+
+	8장. 딥러닝의 역사
+		딥러닝 --> 텐서플로우를 이용해서 신경망을 구현
+
+		목표 : "이미지를 분류할 수 있는 신경망을 구현"
+			구체적인 예 : 정상 폐사진 vs 폐결절 사진을 구분
+
+		제조업에서 만드는 제품들의 불량 여부 확인 
+
+			정상 이파리 vs 질병에 걸린 이파리
+
+
+
+
+
+
+
+
+
+
+
+■ 1장. 이 책을 보기 위해 필요한 파이썬 기본 문법
+
+
+★ numpy 란 ?
+	- python언어에서 기본적으로 지원하지 않는 배열(array) 혹은 행렬(matrix)의 계산을 손쉽게 해주는 
+	  라이브러리 
+
+	- 머신러닝에서 많이 사용하는 선형대수학에 관련된 수식들을 python에서 쉽게 프로그래밍할 수 있게 해준다.
+
+
+
+
+문제 1. 아래의 행렬을 numpy로 만드시오 !
+
+	1 2
+	3 4
+
+	import numpy as np
+	
+	a = np.array( [[1, 2], [3, 4]] )
+	print(a)
+
+	[[1 2]
+	 [3 4]]
+
+
+
+문제 2. 위의 a 행렬의 각 요소에 5를 더한 값을 출력하시오 !
+
+	import numpy as np
+	
+	a = np.array( [[1, 2], [3, 4]] )
+	
+	print(a+5)
+
+	[[6 7]
+	 [8 9]]
+
+
+
+문제 3. 아래의 배열의 원소들의 평균값을 출력하시오 !
+
+	import numpy as np
+	
+	a = np.array( [1, 2, 3, 4, 5, 5, 7, 10, 13, 18, 21])
+	print( np.mean(a))
+	
+	8.09090909091
+
+	※ 예제
+		중앙값   : print( np.median(a) )
+		최대값   : print( np.max(a) )
+		최소값   : print( np.min(a) )
+		표준편차 : print( np.std(a) )
+		분산     : print( np.var(a) )
+
+
+
+문제 4. 아래의 행렬식을 numpy로 구현하시오 !
+
+	      1 3 7        0 0 5
+	              +            =  ?
+	      1 0 0        7 5 0
+	
+	import numpy as np
+	
+	a = np.array( [ [1, 3, 7], [1, 0, 0] ] )
+	b = np.array( [ [0, 0, 5], [7, 5, 0] ] )
+	print(a + b)
+
+	[[ 1  3 12]
+	 [ 8  5  0]]
+
+
+
+
+
+
+
+
+★ 넘파이의 산술연산 (p 37)
+
+	import numpy as np
+	x = np.array( [1, 2, 3] )
+	y = np.array( [2, 4, 6] )
+
+	print( x + y )
+	print( x * y )
+	print( x / y )
+
+	[3 6 9]
+	[ 2  8 18]
+	[ 0.5  0.5  0.5]
+
+
+문제 5. 위에서 만든 x와 y가 각각 몇행 몇열인지를 38페이지를 참고해서 알아보시오 !
+
+	print( x.shape )
+	print( y.shape )
+	
+	(3,)		# 1행 3열
+	(3,)		# 1행 3열
+
+
+
+
+문제 6. 아래의 덧셈 행렬의 결과를 파이썬으로 구현하시오 !
+
+	     1 2     10  20
+	          +          =  ?
+	     3 4     30  40 
+	
+	import numpy as np
+	x = np.array( [ [1,2], [3,4] ])
+	y = np.array( [ [10,20], [30,40] ])
+	print(x + y)
+	
+	[[11 22]
+	 [33 44]]
+
+
+
+문제 7. 문제 6번의 덧셈 행렬을 numpy를 이용하지 않고 파이썬 코드로만 수행하시오 !
+
+	     1 2     10  20
+	          +          =  ?
+	     3 4     30  40 
+	
+	a = [ [1, 2], [3, 4] ]
+	b = [ [10, 20], [30, 40] ]
+	
+	for i in range(len(a)):
+	    for j in range(len(a[i])):
+	        print(a[i][j] + b[i][j])
+	
+	11
+	22
+	33
+	44
+
+
+
+
+
+★ numpy의 브로드 캐스트 기능
+
+		참고 (1.5.5_브로드캐스트_그림1_1.png)
+
+	넘파이 배열은 원소별 계산뿐 아니라 넘파이 배열과 수치 하나(스칼라 값)의 조합으로 된 산술연산도
+	수행할 수 있습니다. 이 경우 스칼라 값과의 계산이 넘파이 배열의 원소별로 한 번씩 수행 됩니다.
+	이 기능을 브로드캐스트라고 합니다. (p 37)
+
+
+
+
+문제 8. 아래의 행렬 곱을 numpy로 구현하는데 브로드 캐스트가 되는지 확인하시오 !
+
+	그림 (1.5.5_브로드캐스트_그림1_1.png)
+
+	import numpy as np
+	a = np.array( [[1,2], [3,4]] )
+	b = np.array( [10] )
+	
+	print( a * b )
+
+	[[10 20]
+	 [30 40]]
+
+
+
+문제 9. 아래의 그림을 numpy로 구현하시오 ! 브로드캐스트가 되는지 확인하시오 !
+
+	그림 ( 1.5.5_브로드캐스트_그림1_2 )
+
+	import numpy as np
+	a = np.array( [[1, 2], [3, 4]] )
+	b = np.array( [10, 20] )
+	
+	print( a * b )
+	
+	[[10 40]
+	 [30 80]]
+
+
+
+
+문제 10. 문제 9번을 numpy를 이용하지 말고 구현하시오 !
+
+	a = [[1, 2], [3, 4]]
+	b = [10, 20]
+	
+	for i in range(len(a)):
+	    for j in range(len(a[i])):
+	        print(a[i][j] * b[j])
+	
+	10
+	40
+	30
+	80
+
+
+
+
+문제 11. 아래의 행렬식을 만들고 아래의 행렬의 요소에서 15이상인 것만 출력하시오 !
+
+	   51  55
+	   14  19
+	    0   4
+	
+	a = [[51, 55], [14, 19], [0, 4]]
+	
+	for i in range(len(a)):
+	    for j in range(len(a[i])):
+	        if a[i][j] >= 15:
+	            print(a[i][j])
+
+
+
+
+문제 12. 문제 11번을 numpy로 구현하시오 !
+
+	import numpy as np
+	
+	a = np.array( [ [51, 55], [14, 19], [0, 4] ] )
+
+	print( a >= 15 )
+	print( a[a>=15] )
+	
+	[[ True  True]
+	 [False  True]
+	 [False False]]
+
+	[51 55 19]
+
+
+
+
+
+
+
+★ matplotlib 사용 법 (p 41)
+
+	딥러닝 실험에서는 그래프 그리기와 데이터 시각화가 중요하다. 
+
+	matplotlib는 그래프를 그리기 위한 라이브러리이다.
+
+	matplotlib를 이용하면 그래프를 그리기가 쉬워진다.
+
+
+	예제1 :
+		import matplotlib.pyplot as plt
+		plt.plot( [ 1,2,3,4,5,6,7,8,9,8,7,6,5,4,3,2,1,0])
+		plt.show()
+
+		그림 1-_-1
+
+
+	예제2 : 
+	
+		import matplotlib.pyplot as plt
+		import numpy as np
+		
+		t = np.arange(0, 12, 0.01)
+		print(t)
+		
+		plt.plot(t)
+		plt.show()
+
+		[  0.00000000e+00   1.00000000e-02   2.00000000e-02 ...,   1.19700000e+01
+		   1.19800000e+01   1.19900000e+01]
+		그림 1-_-2
+
+
+
+
+문제 13. 위의 그래프에 grid(격자)를 추가하시오 !
+
+	import matplotlib.pyplot as plt
+	import numpy as np
+	
+	t = np.arange(0, 12, 0.01)
+	print(t)
+	
+	plt.plot(t)
+	plt.grid()
+	plt.show()
+	
+	[  0.00000000e+00   1.00000000e-02   2.00000000e-02 ...,   1.19700000e+01
+	   1.19800000e+01   1.19900000e+01]
+	
+	그림 1-_-3
+
+
+
+문제 14. 아래의 그래프를 그리시오 !
+
+	그림 1-_-4
+	
+	import matplotlib.pyplot as plt
+	plt.plot([6,4,2,0,2,4,6], color = 'red')
+	plt.grid()
+	plt.show()
+
+
+
+문제 15. 아래의 그래프를 그리시오 !
+
+	그림 1-_-5
+
+	import matplotlib.pyplot as plt
+	
+	plt.plot([6,8,8,6,8,8,6], color = 'red')
+	plt.grid()
+	plt.show()
+
+
+
+문제 16. 문제 14번 코드와 문제 15번 코드를 조합해서 아래의 그래프를 그리시오 !
+
+	그림 1-_-6
+	
+	import matplotlib.pyplot as plt
+	
+	plt.plot([6,4,2,0,2,4,6], color = 'red')
+	plt.plot([6,8,8,6,8,8,6], color = 'red')
+	plt.show()
+
+
+
+
+문제 17. 위의 그래프에 제목을 아래와 같이 붙이시오 !
+
+     제목 : 재혁이를 향한 우용이의 마음
+
+	import matplotlib.pyplot as plt
+	from matplotlib import font_manager, rc
+	    
+	# 한글 폰트 설정
+	font_name = font_manager.FontProperties(fname="C:/Windows/Fonts/H2PORM.TTF").get_name()
+	rc('font', family=font_name)
+	
+	plt.figure()
+	plt.plot([6, 4, 2, 0, 2, 4, 6], color = 'red')
+	plt.plot([6, 8, 8, 6, 8, 8, 6], color = 'red')
+	plt.grid()
+	plt.title('재혁이를 향한 우용이의 마음')
+	plt.show()
+	
+	그림 1-_-7
+
+
+문제 18. 아래의 numpy배열로 산포도 그래프를 그리사오 !
+
+	x = np.array( [ 0,1,2,3,4,5,6,7,8,9 ] )
+	y = np.array( [ 9,8,7,9,8,3,2,4,3,4 ] )
+	
+	import numpy as np
+	import matplotlib.pyplot as plt
+	
+	x = np.array( [ 0,1,2,3,4,5,6,7,8,9 ] )
+	y = np.array( [ 9,8,7,9,8,3,2,4,3,4 ] )
+	
+	plt.scatter(x,y)
+	plt.show()
+
+	그림 1-_-8
+
+
+문제 19. 위의 그래프를 라인그래프로 그리시오 !
+
+	import numpy as np
+	import matplotlib.pyplot as plt
+	
+	x = np.array( [ 0,1,2,3,4,5,6,7,8,9 ] )
+	y = np.array( [ 9,8,7,9,8,3,2,4,3,4 ] )
+	plt.plot(x,y)
+	plt.show()
+
+	그림 1-_-9
+
+
+
+
+문제 20. 위의 plot 그래프에 x축의 라벨을 '월' 이라고 하고 y축의 라벨을 '아파트 매매 가격'이라고 하고 제목을
+	 '아파트 매매가격 변동 추이' 라고 하시오 !
+
+	import numpy as np
+	import matplotlib.pyplot as plt
+	from matplotlib import font_manager, rc
+
+	font_name = font_manager.FontProperties(fname="C:/Windows/Fonts/H2PORM.TTF").get_name()
+	rc('font', family=font_name)
+	
+	x = np.array( [ 0,1,2,3,4,5,6,7,8,9 ] )
+	y = np.array( [ 9,8,7,9,8,3,2,4,3,4 ] )
+	
+	plt.plot(x,y)
+	plt.xlabel('월')
+	plt.ylabel('아파트 매매가격')
+	plt.title('아파트 매매가격 변동 추이')
+	plt.show()
+	
+	그림 1-_-10
+
+
+
+문제 21. 창업건수.csv 파일을 이용해서 치킨집 년도별 창업건수를 가지고 라인그래프를 그리시오 !
+
+	import numpy as np
+	from matplotlib import pyplot as plt
+	from matplotlib import font_manager, rc
+	    
+	# 한글 폰트 설정
+	font_name = font_manager.FontProperties (fname="C:/Windows/Fonts/H2PORM.TTF").get_name()
+	rc('font', family=font_name)
+	
+	
+	chi = np.loadtxt('c:\\창업건수.csv', skiprows=1, 
+	                  unpack=True, delimiter=',')
+	
+	# 설명 : unpack = False 면  csv 파일을 그대로 읽어오는것이고
+	#        unpack = True 면 csv 파일을 pivot 해서 읽어오는것이다
+	
+	print( chi ) 
+	
+	x = chi[0]
+	y = chi[4] 
+	
+	plt.plot(x,y)
+	plt.xlabel('년도')
+	plt.ylabel('치킨집 창업건수')
+	plt.title('년도별 치킨집 창업 현황')
+	plt.show() 
+
+	[[ 2005.  2006.  2007.  2008.  2009.  2010.  2011.  2012.  2013.  2014.]
+	 [ 2196.  2028.  1802.  1691.  1826.  1798.  1688.  1767.  1965.  1980.]
+	 [ 1034.   950.  1036.  1127.  1086.  1105.  1199.  1183.  1432.  1870.]
+	 [  540.   577.   620.   561.   645.   669.   736.   753.   839.  1095.]
+	 [  530.   525.   507.   543.   711.   865.   837.   986.   954.  1193.]
+	 [  454.   483.   575.   772.   845.  1291.  1671.  1847.  2287.  3053.]
+	 [ 5994.  5504.  6148.  6036.  6577.  6689.  6900.  7082.  7708.  9772.]
+	 [  635.   591.   544.   525.   627.   553.   638.   687.   769.  1272.]]
+
+	그림 1-_-11
+
+
+
+
+
+문제 22. 치킨집 폐업 현황을 라인그래프로 시각화 하시오 !
+
+	import numpy as np
+	from matplotlib import pyplot as plt
+	from matplotlib import font_manager, rc
+	    
+	# 한글 폰트 설정
+	font_name = font_manager.FontProperties (fname="C:/Windows/Fonts/H2PORM.TTF").get_name()
+	rc('font', family=font_name)
+	
+	
+	chi = np.loadtxt('c:\\폐업건수.csv', skiprows=1, 
+	                  unpack=True, delimiter=',')
+		
+	print( chi ) 
+	
+	x = chi[0]
+	y = chi[4] 
+	
+	plt.plot(x,y)
+	plt.xlabel('년도')
+	plt.ylabel('치킨집 창업건수')
+	plt.title('년도별 치킨집 창업 현황')
+	plt.show() 
+
+	그림 1-_-12
+
+
+
+
+문제 23. 위의 두개의 그래프를 겹치게 해서 출력하시오 !
+
+	import numpy as np
+	from matplotlib import pyplot as plt
+	from matplotlib import font_manager, rc
+	    
+	font_name = font_manager.FontProperties (fname="C:/Windows/Fonts/H2PORM.TTF").get_name()
+	rc('font', family=font_name)
+	
+	
+	chi1 = np.loadtxt('c:\\창업건수.csv', skiprows=1, 
+	                  unpack=True, delimiter=',')
+	
+	chi2 = np.loadtxt('c:\\폐업건수.csv', skiprows=1, 
+	                  unpack=True, delimiter=',')
+	
+	x = chi1[0]
+	y = chi1[4] 
+	
+	x1 = chi2[0]
+	y1 = chi2[4] 
+	
+	plt.plot(x,y, label = '치킨집 창업건수')
+	plt.plot(x1,y1, label = '치킨집 폐업건수')
+	plt.xlabel('년도')
+	plt.title('년도별 치킨집 창업 현황')
+	plt.legend()
+	plt.show() 
+
+	그림 1-_-13
+
+
+문제 24. 책 44페이지의 레나 사진을 파이썬에서 구현하시오 !
+
+	그림 lena
+
+	import numpy as np
+	from matplotlib import pyplot as plt
+	from matplotlib.image import imread
+	
+	img = imread('c:\lena.png')
+	
+	plt.imshow(img)
+	plt.show()
+
+	그림 1-_-14
+
+
+
+
+문제 25. (오늘의 마지막 문제) 한식집의 창업과 폐업 건수를 라인그래프로 시각화 하시오 !
+
+	import numpy as np
+	from matplotlib import pyplot as plt
+	from matplotlib import font_manager, rc
+	    
+	font_name = font_manager.FontProperties (fname="C:/Windows/Fonts/H2PORM.TTF").get_name()
+	rc('font', family=font_name)
+	
+	
+	chi1 = np.loadtxt('c:\\창업건수.csv', skiprows=1, 
+	                  unpack=True, delimiter=',')
+	
+	chi2 = np.loadtxt('c:\\폐업건수.csv', skiprows=1, 
+	                  unpack=True, delimiter=',')
+	
+	x = chi1[0]
+	y = chi1[6] 
+	
+	x1 = chi2[0]
+	y1 = chi2[6] 
+	
+	plt.plot(x,y, label = '한식집 창업건수')
+	plt.plot(x1,y1, label = '한식집 폐업건수')
+	plt.xlabel('년도')
+	plt.title('년도별 치킨집 창업 현황')
+	plt.legend()
+	plt.show() 
+
+	그림 1-_-15
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

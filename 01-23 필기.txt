@@ -1,0 +1,379 @@
+﻿■ 복습
+
+	1장. 이 책을 보기위한 파이썬 문법
+		- numpy
+
+
+	2장. 퍼셉트론
+		- 단층 퍼셉트론
+		- 다층 퍼셉트론
+
+		"xor 문제를 단층이 해결하지 못해서 다층 퍼셉트론이 나오게 됨"
+
+
+	3장. 저자가 만들어온 가중치를 이용해서 3층 신경망을 구현
+
+
+	4장. 수치미분을 이용해서 신경망 학습 시키기 
+		수치미분의 단점 ? 성능이 느리다.
+		수치미분의 장점 ? 코드 구현이 쉽다.
+
+	5장. 오차역전파를 이용해서 신경망 학습 시키기
+		오차 역전파의 장점 ? 성능이 빠르다
+		오차 역전파의 단점 ? 코드 구현이 조금 어렵다
+
+	     코드 구현을 쉽게 하기 위해서 사용한 방법?
+		" 계산 그래프 "
+			- 덧셈 계층, 곱셈 계층
+			- 신경망에서는 relu함수 구현
+
+
+
+
+문제 164. 위의 relu함수의 역전파를 실행하시오 !
+	  역전파때 사용하는 입력값은 순전파의 결과값을 그대로 사용하시오 !
+
+	import numpy as np
+	x = np.array([[1.0, -0.5], [-2.0, 3.0]])
+	
+	relu = Relu()
+	
+	#순전파(mask정보 생성)
+	print(relu.forward(x))
+	
+	[[ 1.  0.]
+	 [ 0.  3.]]
+
+	#역전파
+	dout = np.array([[2.0, 3.0], [-3.0, -4.0]])
+	print(relu.backward(x))
+
+	[[ 2.  0.]
+	 [ 0. -4.]]
+
+		※ 설명 : 순전파일 때 사용했던 부울 값이 있는 mask정보를 역전파일때도 사용하는 이유는
+			  순전파일때 전파가 되지 않았으면 역전파일때도 역전파가 되지 않게 하기 위해서
+			  이다.
+
+
+
+
+
+
+★ sigmiod 함수를 파이썬으로 구현하기
+
+	그림 5-_-2
+
+
+
+
+문제 165. 파이썬으로 sigmoid 클래스를 생성하시오 ! (p 170)
+
+	class Sigmoid:
+	    def __init__(self):
+	        self.out = None
+	    
+	    def forward(self, x):
+	        out = 1 / (1 + np.exp(-x))
+	        self.out = out
+	        return out
+	    
+	    def backward(self, dout):
+	        dx = dout * (1.0 - self.out) * self.out
+	        return dx
+
+
+
+
+
+문제 166. sigmoid클래스를 객체화 시켜서 아래의 입력값을 순전파로 보낸 결과와 역전파로 나온 결과를 출력하시오 !
+
+	sig = Sigmoid()
+
+	#순전파
+	x = np.array([[2.0, 4.0], [-0.3, 0.9]])
+	print(sig.forward(x))
+	
+	[[ 0.88079708  0.98201379]
+	 [ 0.42555748  0.7109495 ]]
+	
+	#역전파(순전파 결과값 정보 필요)
+	dout = np.array([[4.0, 2.0], [-0.1, 0.8]])
+	print(sig.backward(dout))
+	
+	[[ 0.41997434  0.03532541]
+	 [-0.02444583  0.16440025]]
+
+		※ 설명 170페이지 이 구현에서는 순전파의 출력을 인스턴스 변수 out에 보관했다가 
+
+
+
+
+
+
+
+★ Affine 계층 ( p 170 )
+
+	"신경망의 순전파 때 수행하는 행렬을 내적은 기하학에서는 어파인 변환이라고 합니다.
+	 그래서 신경망에서 입력값과 가중치의 내적의 합에 바이어스를 더하는 그 층을 Affine계층이라고
+	 해서 구현합니다. "
+
+	"지금까지의 계산 그래프는 노드 사이에 '스칼라값'이 흘렀는데 이에 반해 이번에는 '행렬'이 흐르고
+	 있어서 Affine계층 구현이 필요하다"
+
+
+
+
+문제 167. 파이썬으로 Affine 클래스를 생성하시오 ! (p 175)
+
+	class Affine:
+	    def __init__(self, W, b):
+	        self.W = W
+	        self.b = b
+	        self.x = None
+	        self.dW = None
+	        self.db = None
+	        
+	    def forward(self, x):
+	        self.x = x
+	        out = np.dot(x, self.W) + self.b
+	        return out
+	    
+	    def backward(self, dout):
+	        dx = np.dot(dout, self.W.T)
+	        self.dW = np.dot(self.x.T, dout)
+	        self.db = np.sum(dout, axis = 0)
+	        return dx
+
+
+
+
+문제 168. 위의 Affine 클래스를 객체화시켜 아래의 입력값 행렬, 가중치 행렬, 바이어스 행렬을 흘려보낸 
+	  순전파 결과가 어떻게 되는지 출력하시오 !
+
+	x = np.random.rand(2)
+	W = np.random.rand(2,3)
+	b = np.random.rand(3)
+	
+	print(x)
+	print(W)
+	print(b)
+	
+	affine = Affine(W, b)
+	
+	print(affine.forward(x))
+
+
+
+
+문제 169. (점심시간 문제)아래의 수학식을 증명하시오 !
+	  (손으로 써서 증명 또는 파이썬으로 증명)
+
+	X ◎ W != W ◎ X   (교환 법칙이 성립하지 않는다)
+
+	[ a b ]      [ e f ]      [ ae+bg  af+bh ]
+                 ◎            =  
+	[ c d ]      [ g h ]      [ ce+dg  cf+dh ]
+
+
+	[ e f ]      [ a b ]      [ ae+fc  eb+fd ]
+                 ◎            =  
+	[ g h ]      [ c d ]      [ ga+hd  bg+dh ]
+
+		
+	[ ae+bg  af+bh ]               [ ae+fc  eb+fd ]
+       			       0!=        
+	[ ce+dg  cf+dh ]               [ ga+hd  bg+dh ]
+ 
+
+
+
+문제 170. X ◎ W = (W^T ◎ X^T)^T 라는 것을 파이썬으로 증명하시오 !
+
+	X = np.array([[1, 2], [3, 4]])
+	W = np.array([[5, 6], [7, 8]])
+	
+	print(np.dot(X, W))
+	print(np.dot(W.T, X.T).T)
+
+	[[19 22]
+	 [43 50]]
+	[[19 22]
+	 [43 50]]
+
+
+
+
+문제 171. 2 x 3 행렬을 전치시키면 ? x ? 행렬일지 파이썬으로 구현해 보시오 !
+
+	x = np.array([[1, 2, 3], [4, 5, 6]])
+	print(x.T.shape)
+
+	(3, 2)
+
+
+
+
+문제 172. 2 x 3 ◎ 3 x 4 = 2 x 4  --->  4 x 3 ◎ 3 x 2 = 4 x 2 ----> 2 x 4
+	  위의 식을 파이썬으로 구현하시오 !
+
+	x = np.array([[1, 2, 3], [4, 5, 6]])
+	y = np.array([[7, 8, 9, 10], [11, 12, 13, 14], [15, 16, 17, 18]])
+	
+	print(x.shape, 'x', y.shape, '=', np.dot(x,y).shape)
+	print('=',np.dot(x,y))
+	print('-------------------------')
+	print(y.T.shape, 'x', x.T.shape, '=', np.dot(y.T, x.T).shape)
+	print('->', np.dot(y.T,x.T).T.shape)
+	print('=', np.dot(y.T,x.T).T)
+
+
+
+
+
+
+
+
+★ Affine 계층의 계산 그래프
+	그림 5-_-4
+	
+
+문제 173. 문제 167번에서 구성한 Affine클래스를 객체화 시켜서 forward와 backward를 구현하시오 !
+
+	X = np.array([[1, 2], [3, 4]])
+	W = np.array([[1, 3, 5], [2, 4, 6]])
+	b = np.array([[1, 1, 1], [1, 1, 1]])
+	dout = np.array([[1, 2, 3], [4, 5, 6]])
+	
+	affine = Affine(W, b)
+	print(affine.forward(X))
+	print(affine.backward(dout))
+	
+	[[ 6 12 18]
+	 [12 26 40]]
+	[[22 28]
+	 [49 64]]
+
+
+
+
+문제 174. Affine 클래스를 이용해서 2층 신경망의 순전파를 구현하시오 !
+	그림 5-_-3
+
+	x = np.array([[1,2]])
+	
+	w1 = np.array([[1, 3, 5], [2, 4, 6]])
+	b1 = np.array([[1, 2, 3]])
+	
+	w2 = np.array([[1, 4], [2, 5], [3, 6]])
+	b2 = np.array([[1, 2]])
+	
+	affine1 = Affine(w1, b1)
+	affine2 = Affine(w2, b2)
+	
+	out1 = affine1.forward(x)
+	out2 = affine2.forward(out1)
+	print(out2)
+
+	[[ 93 211]]
+
+
+
+
+문제 175. 위의 2층신경망의 은닉층(1층)에 활성화 함수로 Relu를 추가해서 구현하시오 !
+	  (Relu 클래스를 가져와서 객체화 시켜야 한다.)
+
+	x = np.array([[1,2]])
+	
+	w1 = np.array([[1, 3, 5], [2, 4, 6]])
+	b1 = np.array([[1, 2, 3]])
+	
+	w2 = np.array([[1, 4], [2, 5], [3, 6]])
+	b2 = np.array([[1, 2]])
+	
+	affine1 = Affine(w1, b1)
+	relu1 = Relu()
+	affine2 = Affine(w2, b2)
+	
+	out1 = affine1.forward(x)
+	out1_hat = relu1.forward(out1)
+	out2 = affine2.forward(out1_hat)
+	print(out2)
+
+	[[ 93 211]]
+
+
+
+
+문제 176. 위의 2층 신경망의 역전파를 Affine 클래스를 이용해서 구현하시오 !
+	  역전파시 입력할 dY는 위의 순전파의 결과인 out2행렬값을 그대로 사용하시오 !
+
+	x = np.array([[1,2]])
+	
+	w1 = np.array([[1, 3, 5], [2, 4, 6]])
+	b1 = np.array([[1, 2, 3]])
+	
+	w2 = np.array([[1, 4], [2, 5], [3, 6]])
+	b2 = np.array([[1, 2]])
+	
+	# 각 층 객체화
+	affine1 = Affine(w1, b1)
+	relu1 = Relu()
+	affine2 = Affine(w2, b2)
+	
+	# 순전파
+	out1 = affine1.forward(x)
+	out1_hat = relu1.forward(out1)
+	out2 = affine2.forward(out1_hat)
+	
+	# 역전파
+	dout2 = out2
+	dout1_hat = affine2.backward(dout2)
+	dout1 = relu.backward(dout1_hat)
+	dx = affine1.backward(dout1)
+	dw1 = affine1.dW
+	db1 = affine1.db
+	
+	print(dx)
+	print(dw1)
+	print(db1)
+
+	[[12385 16108]]
+	[[ 937 1241 1545]
+	 [1874 2482 3090]]
+	[ 937 1241 1545]
+
+
+
+
+문제 177. (오늘의 마지막 문제) 위의 2층 신경망을 3층 신경망으로 변경하시오 !
+
+	x = np.array([[1,2]])
+	
+	w1 = np.array([[1, 3, 5], [2, 4, 6]])
+	b1 = np.array([[1, 2, 3]])
+	
+	w2 = np.array([[1, 4], [2, 5], [3, 6]])
+	b2 = np.array([[1, 2]])
+	
+	w3 = np.array([[5, 6, 7], [2, 3, 4]])
+	b3 = np.array([[1, 1, 1]])
+	
+	#각 층 객체화
+	affine1 = Affine(w1, b1)
+	relu1 = Relu()
+	affine2 = Affine(w2, b2)
+	relu2 = Relu()
+	affine3 = Affine(w3, b3)
+	
+	# 순전파
+	out1 = affine1.forward(x)
+	out1_hat = relu1.forward(out1)
+	out2 = affine2.forward(out1_hat)
+	out2_hat = relu2.forward(out2)
+	out3 = affine3.forward(out2_hat)
+	print(out3)
+
+	[[ 888 1192 1496]]
+
+

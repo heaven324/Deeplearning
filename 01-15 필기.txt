@@ -1,0 +1,434 @@
+﻿★ 정확도를 이해하기 위해 기본적으로 알아야할 파이썬 문법 
+	오차함수 ? 예측값과 실제값의 차이를 구하는 함수 
+
+
+
+문제 88. 아래의 10개의 원소를 갖는 x라는 리스트를 만들고 x리스트에 가장 큰 원소가 몇번째 인덱스인지 
+	 알아내시오 !
+
+	import numpy as np
+	
+	x = [0.05, 0.01, 0.02, 0.02, 0.1, 0.2, 0.3, 0.4, 0.05, 0.04]
+	y = np.argmax(x,axis=0)
+	print(y)
+	
+	print(x.index(max(x)))
+
+
+
+문제 89. 아래의 리스트를 numpy array 리스트로 변환하고 shape를 확인하시오 !
+
+	x = [[0.1,0.05,0.1,0.0,0.05,0.1,0.0,0.1,0.0,0.0],
+	     [0.1,0.05,0.2,0.0,0.05,0.1,0.0,0.6,0.0,0.0],
+	     [0.0,0.05,0.3,0.0,0.05,0.1,0.0,0.6,0.0,0.0],
+	     [0.0,0.05,0.4,0.0,0.05,0.0,0.0,0.5,0.0,0.0],
+	     [0.0,0.05,0.5,0.0,0.05,0.0,0.0,0.4,0.0,0.0],
+	     [0.0,0.05,0.6,0.0,0.05,0.0,0.0,0.3,0.0,0.0],
+	     [0.0,0.05,0.7,0.0,0.05,0.0,0.0,0.2,0.0,0.0],
+	     [0.0,0.1 ,0.8,0.0,0.1 ,0.0,0.0,0.2,0.0,0.0],
+	     [0.0,0.05,0.9,0.0,0.05,0.0,0.0,0.0,0.0,0.0],
+	     [0.0,0.05,0.6,0.0,0.05,0.0,0.0,0.3,0.0,0.0] ]
+	import numpy as np
+	y = np.array(x)
+	print(y.shape)
+	
+	(10, 10)
+
+
+
+문제 90. 아래의 10행 10열에서 각 행에서 가장 큰 원소가 몇번째에 있는지 출력하시오 !
+
+	x = [[0.2,0.05,0.1,0.0,0.05,0.0,0.0,0.1,0.0,0.0],   
+	     [0.1,0.05,0.2,0.0,0.05,0.1,0.0,0.6,0.0,0.0],
+	     [0.0,0.05,0.3,0.0,0.05,0.1,0.0,0.6,0.0,0.0],
+	     [0.0,0.05,0.4,0.0,0.05,0.0,0.0,0.5,0.0,0.0],
+	     [0.0,0.05,0.5,0.0,0.05,0.0,0.0,0.4,0.0,0.0],
+	     [0.0,0.05,0.6,0.0,0.05,0.0,0.0,0.3,0.0,0.0],
+	     [0.0,0.05,0.7,0.0,0.05,0.0,0.0,0.2,0.0,0.0],
+	     [0.0,0.1 ,0.8,0.0,0.1 ,0.0,0.0,0.2,0.0,0.0],
+	     [0.0,0.05,0.9,0.0,0.05,0.0,0.0,0.0,0.0,0.0],
+	     [0.0,0.05,0.6,0.0,0.05,0.0,0.0,0.3,0.0,0.0] ]
+	
+	import numpy as np
+	y = np.array(x)
+	print(np.argmax(y,axis=1))    # 행기준
+	# print(np.argmax(y,axis=0))  # 열기준
+
+		※ 설명 : axis = 0  : 열
+			  axis = 1  : 행
+
+
+
+
+문제 91. 테스트 데이터 하나 x[34]의 필기체 의 라벨이 무엇인지 확인하시오 !
+
+	import sys, os
+	
+	sys.path.append(os.pardir)
+	
+	import numpy as np
+	from dataset.mnist import load_mnist
+	from PIL import Image
+	import  pickle
+	import  numpy  as np
+	
+	def  get_data():
+	    (x_train, t_train) , (x_test, t_test) = \
+	    load_mnist(normalize=True, flatten=True, one_hot_label=False)
+	    return  x_test, t_test
+	
+	x, t = get_data()
+	print(x.shape)
+	print(t[34])
+
+
+
+문제 92. 테스트 데이터 하나인 x[34]의 필기체를 신경망에 넣고 신경망이 예측한 것과 라벨이 서로 일치하는지 
+	 확인하시오 !
+
+	import sys, os
+	
+	sys.path.append(os.pardir)
+	
+	import numpy as np
+	from dataset.mnist import load_mnist
+	from PIL import Image
+	import  pickle
+	import  numpy  as np
+	
+	
+	# 신경망 함수들
+	def sigmoid(num):
+	    rst = (1 / (1 + np.exp(-num)))
+	    return (rst)
+	
+	
+	def identity_function(x):
+	    return x
+	
+	
+	def softmax(a):
+	    c = np.max(a)
+	    minus = a - c
+	    exp_a = np.exp(minus)
+	    sum_exp_a = np.sum(exp_a)
+	    y = exp_a / sum_exp_a
+	    return y
+	
+	def  init_network():
+	    with open("sample_weight.pkl",'rb')  as  f:
+	        network = pickle.load(f)
+	    return  network
+	
+	
+	def  predict(network, x):
+	    W1, W2, W3 = network['W1'], network['W2'], network['W3']
+	    b1, b2, b3 = network['b1'], network['b2'], network['b3']
+	
+	    a1 = np.dot(x,W1) + b1
+	    z1 = sigmoid(a1)
+	    a2 = np.dot(z1,W2) + b2
+	    z2 = sigmoid(a2)
+	    a3 = np.dot(z2,W3) + b3
+	    y = softmax(a3)
+	
+	    return  y
+	
+	def  get_data():
+	    (x_train, t_train) , (x_test, t_test) = \
+	    load_mnist(normalize=True, flatten=True, one_hot_label=False)
+	    return  x_test, t_test
+	
+	x, t = get_data()
+	network = init_network()
+	y = predict(network,x[34])
+	print(np.argmax(y))
+	print(t[34])
+
+	7
+	7
+
+
+
+
+문제 93. 위의 코드에 for loop문을 입혀서 테스트 데이터 10000장을 위의 3층 신경망에 넣고 10000장 중에 몇장을 
+	 3층 신경망이 맞추는지 확인하시오 !
+
+	import sys, os
+	
+	sys.path.append(os.pardir)
+	
+	import numpy as np
+	from dataset.mnist import load_mnist
+	from PIL import Image
+	import  pickle
+	import  numpy  as np
+	
+	
+	# 신경망 함수들
+	def sigmoid(num):
+	    rst = (1 / (1 + np.exp(-num)))
+	    return (rst)
+	
+	
+	def identity_function(x):
+	    return x
+	
+	
+	def softmax(a):
+	    c = np.max(a)
+	    minus = a - c
+	    exp_a = np.exp(minus)
+	    sum_exp_a = np.sum(exp_a)
+	    y = exp_a / sum_exp_a
+	    return y
+	
+	def  init_network():
+	    with open("sample_weight.pkl",'rb')  as  f:
+	        network = pickle.load(f)
+	    return  network
+	
+	
+	def  predict(network, x):
+	    W1, W2, W3 = network['W1'], network['W2'], network['W3']
+	    b1, b2, b3 = network['b1'], network['b2'], network['b3']
+	
+	    a1 = np.dot(x,W1) + b1
+	    z1 = sigmoid(a1)
+	    a2 = np.dot(z1,W2) + b2
+	    z2 = sigmoid(a2)
+	    a3 = np.dot(z2,W3) + b3
+	    y = softmax(a3)
+	
+	    return  y
+	
+	def  get_data():
+	    (x_train, t_train) , (x_test, t_test) = \
+	    load_mnist(normalize=True, flatten=True, one_hot_label=False)
+	    return  x_test, t_test
+	
+	x, t = get_data()
+	network = init_network()
+	t_count = 0
+	f_count = 0
+	for i in range(0,len(x)):
+	    y = predict(network,x[i])
+	    if np.argmax(y) == t[i]:
+	        t_count += 1
+	    else:
+	        f_count += 1
+	print(t_count, f_count)
+
+	9352 648
+
+
+
+
+문제 94. 위의 결과가 9352가 아니라 아래와 같이 정확도가 출력되게 하시오 !
+
+	x, t = get_data()
+	network = init_network()
+	t_count = 0
+	for i in range(0,10000):
+	    y = predict(network,x[i])
+	    if np.argmax(y) == t[i]:
+	        t_count += 1
+	print('정확도 :', t_count/len(x))
+
+	정확도 : 0.9352
+
+
+
+★ 배치처리 (p 102)
+
+	"신경망에 데이터 입력시 배치(batch)로 입력하는 방법"
+
+	"이미지를 한장씩 처리하는게 아니라 여러장을 한번에 처리"
+
+
+	1. 이미지를 한장씩 처리한 신경망
+		그림 3-_-13
+
+	2. 이미지를 100장씩 처리한 신경망
+		그림 3-_-14
+
+
+
+
+★ 배치로 신경망을 학습시키기 위한 코드를 이해하기 위해 기본적으로 알아야 하는 파이썬 코드 연습
+
+
+문제 95. 아래의 결과를 출력하시오 !
+	 [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+	
+	y = list(range(0, 10))
+	print(y)
+
+
+
+
+문제 96. 아래의 결과를 출력하시오 !
+	[0, 3, 6, 9]
+	
+	y = list( range(0, 10, 3))
+	print(y)
+
+
+
+
+문제 97. 아래의 리스트에서 최대값의 원소의 인덱스를 출력하시오 !
+	[0, 3, 6, 9]
+	
+	import numpy as np
+	y = list( range(0, 10, 3))
+	print(np.argmax(y))
+	3
+
+
+
+
+문제 98. 아래의 행렬을 numpy 배열로 생성하시오 !
+
+	 0.1  0.8  0.1
+	 0.3  0.1  0.6
+	 0.2  0.5  0.3
+	 0.8  0.1  0.1
+
+	import numpy as np
+	
+	y = np.array([0.1, 0.8, 0.1, 
+	              0.3, 0.1, 0.6,
+	              0.2, 0.5, 0.3,
+	              0.8, 0.1, 0.1])
+	y = y.reshape(4,3)
+	print(y)
+
+	[[ 0.1  0.8  0.1]
+	 [ 0.3  0.1  0.6]
+	 [ 0.2  0.5  0.3]
+	 [ 0.8  0.1  0.1]]
+
+
+
+
+문제 99. numpy의 argmax를 이용해서 아래의 행렬에서 행중에 최대값 원소의 인덱스를 출력하시오 !
+	  0.1  0.8  0.1     1
+	  0.3  0.1  0.6     2
+	  0.2  0.5  0.3     1
+	  0.8  0.1  0.1     0
+	
+	import numpy as np
+	
+	y = np.array([0.1, 0.8, 0.1, 
+	              0.3, 0.1, 0.6,
+	              0.2, 0.5, 0.3,
+	              0.8, 0.1, 0.1])
+	y = y.reshape(4,3)
+	print(np.argmax(y, axis = 1))
+	
+	[1 2 1 0]
+
+
+
+
+문제 100. 아래의 2개의 리스트를 만들고 서로 같은 자리에 같은 숫자가 몇개가 있는지 출력하시오 !
+	 [2, 1, 3, 5, 1, 4, 2, 1, 1, 0]
+	 [2, 1, 3, 4, 5, 4, 2, 1, 1, 2]
+	
+	import numpy as np
+	
+	x = np.array([2, 1, 3, 5, 1, 4, 2, 1, 1, 0])
+	y = np.array([2, 1, 3, 4, 5, 4, 2, 1, 1, 2])
+	print(np.sum(x==y))
+	
+	7
+
+
+
+
+문제 101. 아래의 리스트를 x라는 변수에 담고 앞에 5개의 숫자만 출력하시오 !
+	 [7, 3, 2, 1, 6, 7, 7, 8, 2, 4]
+	
+	x = [7, 3, 2, 1, 6, 7, 7, 8, 2, 4]
+	print(x[:5])
+	# print(x[5:10])
+
+	[7 3 2 1 6]
+
+
+
+
+문제 103. 아래의 코드를 mnist의 훈련 데이터를 100개씩 가져오는 코드로 작성하시오 !
+
+	#----------1장씩 입력해서 예측 숫자 1개씩 출력하는 코드-----------
+	# x, t = get_data()
+	# network = init_network()
+	# t_count = 0
+	# for i in range(0,len(x)):
+	#     y = predict(network,x[i])
+	#     print(len(y))
+	#-----------------------------------------------------------------
+	
+	x, t = get_data()
+	network = init_network()
+	t_count = 0
+	batch_size = 100
+	for i in range(0,len(x), batch_size):
+	    x_batch = x[i:i+batch_size]
+	    print(len(x_batch))
+	#     y = predict(network,x_batch_size)
+	#     print(len(y))
+
+
+
+
+문제 104. 100개씩 가지고온 훈련 데이터를 predict함수에 입력해서 예측 숫자 100개를 출력하는 코드를 작성하시오 !
+
+	#----------1장씩 입력해서 예측 숫자 1개씩 출력하는 코드-----------
+	# x, t = get_data()
+	# network = init_network()
+	# t_count = 0
+	# for i in range(0,len(x)):
+	#     y = predict(network,x[i])
+	#     print(len(y))
+	#-----------------------------------------------------------------
+	
+	x, t = get_data()
+	network = init_network()
+	t_count = 0
+	batch_size = 100
+	for i in range(0,len(x), batch_size):
+	    x_batch = x[i:i+batch_size]
+	    y = predict(network,x_batch)
+	    print(len(y))
+
+
+
+
+문제 105. 위의 코드에서 y_batch의 shape를 확인하시오 !
+
+	x, t = get_data()
+	network = init_network()
+	t_count = 0
+	batch_size = 100
+	for i in range(0,len(x), batch_size):
+	    x_batch = x[i:i+batch_size]
+	    y = predict(network,x_batch)
+	    print(y.shape)
+	
+	
+
+문제 106. (오늘의 마지막 문제) 위에 예측한 100개의 숫자와 실제 숫자(라벨)과 비교해서 정확도를 출력하시오 !
+
+	x, t = get_data()
+	network = init_network()
+	t_count = 0
+	batch_size = 100
+	cnt = 0
+	for i in range(0,len(x), batch_size):
+	    x_batch = x[i:i+batch_size]
+	    y = predict(network,x_batch)
+	    cnt += sum(np.argmax(y, axis=1) == t[i:i+batch_size])
+	print('정확도 :', cnt/len(x))
+
+	정확도 : 0.9352 

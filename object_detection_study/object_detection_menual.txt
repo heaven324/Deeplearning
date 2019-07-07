@@ -1,0 +1,129 @@
+﻿Python version : 3.5
+Tensorflow version : 1.14
+
+source : https://github.com/tensorflow/models
+	 https://github.com/EdjeElectronics/TensorFlow-Object-Detection-API-Tutorial-Train-Multiple-Objects-Windows-10
+	 https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/detection_model_zoo.md
+
+
+
+1. 환경 설정
+
+	1) object_detection전용 계정 생성
+		conda create -n tensorflow1 pip python=3.5
+
+	
+	2) 계정 활성화
+		activate tensorflow1
+
+	3) 패키지 다운로드를 위한 pip 모듈 업그레이드
+		python -m pip install --upgrade pip
+
+	4) 텐서플로우-GPU버전 다운로드
+		pip install --ignore-installed --upgrade tensorflow-gpu
+
+	5) 그 외 필요한 패키지 다운로드
+		conda install -c anaconda protobuf
+		pip install pillow
+		pip install lxml
+		pip install Cython
+		pip install contextlib2
+		pip install jupyter
+		pip install matplotlib
+		pip install pandas
+		pip install opencv-python
+
+	6) 환경변수 설정
+		set PYTHONPATH=C:\tensorflow1\models;C:\tensorflow1\models\research;C:\tensorflow1\models\research\slim
+
+	7) proto 파일 변환(\models\research 폴더에서 실행)
+		protoc --python_out=. .\object_detection\protos\anchor_generator.proto .\object_detection\protos\argmax_matcher.proto .\object_detection\protos\bipartite_matcher.proto .\object_detection\protos\box_coder.proto .\object_detection\protos\box_predictor.proto .\object_detection\protos\eval.proto .\object_detection\protos\faster_rcnn.proto .\object_detection\protos\faster_rcnn_box_coder.proto .\object_detection\protos\grid_anchor_generator.proto .\object_detection\protos\hyperparams.proto .\object_detection\protos\image_resizer.proto .\object_detection\protos\input_reader.proto .\object_detection\protos\losses.proto .\object_detection\protos\matcher.proto .\object_detection\protos\mean_stddev_box_coder.proto .\object_detection\protos\model.proto .\object_detection\protos\optimizer.proto .\object_detection\protos\pipeline.proto .\object_detection\protos\post_processing.proto .\object_detection\protos\preprocessor.proto .\object_detection\protos\region_similarity_calculator.proto .\object_detection\protos\square_box_coder.proto .\object_detection\protos\ssd.proto .\object_detection\protos\ssd_anchor_generator.proto .\object_detection\protos\string_int_label_map.proto .\object_detection\protos\train.proto .\object_detection\protos\keypoint_box_coder.proto .\object_detection\protos\multiscale_anchor_generator.proto .\object_detection\protos\graph_rewriter.proto .\object_detection\protos\calibration.proto .\object_detection\protos\flexible_grid_anchor_generator.proto
+
+	8) setup(\models\research 폴더에서 실행)
+		python setup.py build
+		python setup.py install
+
+	9) test(\models\research\object_detection 폴더에서 실행)
+		jupyter notebook object_detection_tutorial.ipynb
+
+
+
+2. 학습 데이터(라벨) 생성
+	python xml_to_csv.py
+		# This creates a train_labels.csv and test_labels.csv file in the \object_detection\images folder.
+
+	python generate_tfrecord.py --csv_input=images\train_labels.csv --image_dir=images\train --output_path=train.record
+	python generate_tfrecord.py --csv_input=images\test_labels.csv --image_dir=images\test --output_path=test.record
+		# These generate a train.record and a test.record file in \object_detection. These will be used to train the new object detection classifier.
+
+	★ labelmap 변경 필요
+
+
+
+3. training label map 생성(\object_detection\training 폴더에 생성)
+	labelmap.pbtxt
+		item {
+		  id: 1
+		  name: 'nine'
+		}
+		
+		item {
+		  id: 2
+		  name: 'ten'
+		}
+		
+		item {
+		  id: 3
+		  name: 'jack'
+		}	
+		
+		item {
+		  id: 4
+		  name: 'queen'
+		}	
+		
+		item {	
+		  id: 5
+		  name: 'king'
+		}		
+	
+		item {
+		  id: 6
+		  name: 'ace'
+		}
+
+
+4. training\faster_rcnn_inception_v2_pets.config의 pipeline수정
+
+	Line 9. Change num_classes to the number of different objects you want the classifier to detect. For the above basketball, shirt, and shoe detector, it would be num_classes : 3 .
+
+	Line 106. Change fine_tune_checkpoint to:
+		fine_tune_checkpoint : "C:/tensorflow1/models/research/object_detection/faster_rcnn_inception_v2_coco_2018_01_28/model.ckpt"
+
+	Lines 123 and 125. In the train_input_reader section, change input_path and label_map_path to:
+		input_path : "C:/tensorflow1/models/research/object_detection/train.record"
+		label_map_path: "C:/tensorflow1/models/research/object_detection/training/labelmap.pbtxt"
+
+	Line 130. Change num_examples to the number of images you have in the \images\test directory.
+
+	Lines 135 and 137. In the eval_input_reader section, change input_path and label_map_path to:
+		input_path : "C:/tensorflow1/models/research/object_detection/test.record"
+		label_map_path: "C:/tensorflow1/models/research/object_detection/training/labelmap.pbtxt"
+
+
+
+5. Training 시작 (\models\research\object_detection 폴더에서 실행)
+
+	python train.py --logtostderr --train_dir=training/ --pipeline_config_path=training/faster_rcnn_inception_v2_pets.config
+
+
+
+
+6. Tensorboard 확인 (\models\research\object_detection 폴더에서 실행)
+	tensorboard --logdir=training
+
+
+7. 학습된 그래프 내보내기
+	python export_inference_graph.py --input_type image_tensor --pipeline_config_path training/faster_rcnn_inception_v2_pets.config --trained_checkpoint_prefix training/model.ckpt-XXXX --output_directory inference_graph
+
+

@@ -1,0 +1,26 @@
+<annotation>
+	<folder>204(회전)</folder>
+	<filename>204_190312_0276.jpg</filename>
+	<path>J:\Labelimg\204(회전)\204_190312_0276.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Glass_4</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>146</xmin>
+			<ymin>16</ymin>
+			<xmax>438</xmax>
+			<ymax>502</ymax>
+		</bndbox>
+	</object>
+</annotation>

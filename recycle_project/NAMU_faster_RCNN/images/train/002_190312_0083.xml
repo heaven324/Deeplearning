@@ -1,0 +1,26 @@
+<annotation>
+	<folder>002(회전)</folder>
+	<filename>002_190312_0083.jpg</filename>
+	<path>J:\Labelimg\002(회전)\002_190312_0083.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Plastic_2</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>138</xmin>
+			<ymin>41</ymin>
+			<xmax>345</xmax>
+			<ymax>409</ymax>
+		</bndbox>
+	</object>
+</annotation>

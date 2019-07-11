@@ -1,0 +1,26 @@
+<annotation>
+	<folder>204_rotated</folder>
+	<filename>204_190312_0389.jpg</filename>
+	<path>J:\Labelimg\204_rotated\204_190312_0389.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Glass_4</name>
+		<pose>Unspecified</pose>
+		<truncated>1</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>157</xmin>
+			<ymin>54</ymin>
+			<xmax>340</xmax>
+			<ymax>512</ymax>
+		</bndbox>
+	</object>
+</annotation>

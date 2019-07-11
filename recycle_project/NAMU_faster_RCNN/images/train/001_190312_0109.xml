@@ -1,0 +1,26 @@
+<annotation>
+	<folder>001(회전)</folder>
+	<filename>001_190312_0109.jpg</filename>
+	<path>C:\Users\김혜진\Desktop\Labelimg\001(회전)\001_190312_0109.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Plastic_1</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>204</xmin>
+			<ymin>36</ymin>
+			<xmax>394</xmax>
+			<ymax>418</ymax>
+		</bndbox>
+	</object>
+</annotation>

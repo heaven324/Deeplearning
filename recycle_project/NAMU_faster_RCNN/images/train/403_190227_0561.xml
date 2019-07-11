@@ -1,0 +1,26 @@
+<annotation>
+	<folder>403</folder>
+	<filename>403_190227_0561.jpg</filename>
+	<path>D:\imgdata\403\403_190227_0561.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Battery_3</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>107</xmin>
+			<ymin>82</ymin>
+			<xmax>346</xmax>
+			<ymax>422</ymax>
+		</bndbox>
+	</object>
+</annotation>

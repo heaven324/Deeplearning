@@ -1,0 +1,26 @@
+<annotation>
+	<folder>301_rotated</folder>
+	<filename>301_190312_0077.jpg</filename>
+	<path>J:\Labelimg\301_rotated\301_190312_0077.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Paper_1</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>86</xmin>
+			<ymin>142</ymin>
+			<xmax>431</xmax>
+			<ymax>433</ymax>
+		</bndbox>
+	</object>
+</annotation>

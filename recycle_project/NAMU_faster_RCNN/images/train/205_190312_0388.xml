@@ -1,0 +1,26 @@
+<annotation>
+	<folder>205_rotated</folder>
+	<filename>205_190312_0388.jpg</filename>
+	<path>J:\Labelimg\205_rotated\205_190312_0388.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Glass_5</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>50</xmin>
+			<ymin>55</ymin>
+			<xmax>393</xmax>
+			<ymax>486</ymax>
+		</bndbox>
+	</object>
+</annotation>

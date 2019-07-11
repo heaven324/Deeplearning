@@ -1,0 +1,26 @@
+<annotation>
+	<folder>303</folder>
+	<filename>303_190312_0079.jpg</filename>
+	<path>C:\Users\stark\Desktop\project\Paper_0\303\303_190312_0079.jpg</path>
+	<source>
+		<database>Unknown</database>
+	</source>
+	<size>
+		<width>512</width>
+		<height>512</height>
+		<depth>3</depth>
+	</size>
+	<segmented>0</segmented>
+	<object>
+		<name>Paper_3</name>
+		<pose>Unspecified</pose>
+		<truncated>0</truncated>
+		<difficult>0</difficult>
+		<bndbox>
+			<xmin>72</xmin>
+			<ymin>69</ymin>
+			<xmax>458</xmax>
+			<ymax>481</ymax>
+		</bndbox>
+	</object>
+</annotation>

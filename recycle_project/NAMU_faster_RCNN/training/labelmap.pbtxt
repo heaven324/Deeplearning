@@ -1,0 +1,100 @@
+item {
+  id: 1
+  name: 'Plastic_0'
+}
+item {
+  id: 2
+  name: 'Plastic_1'
+}
+item {
+  id: 3
+  name: 'Plastic_2'
+}
+item {
+  id: 4
+  name: 'Plastic_3'
+}
+item {
+  id: 5
+  name: 'Plastic_4'
+}
+item {
+  id: 6
+  name: 'Plastic_5'
+}
+item {
+  id: 7
+  name: 'Plastic_6'
+}
+item {
+  id: 8
+  name: 'Plastic_7'
+}
+item {
+  id: 9
+  name: 'Metal_0'
+}
+item {
+  id: 10
+  name: 'Metal_1'
+}
+item {
+  id: 11
+  name: 'Metal_2'
+}
+item {
+  id: 12
+  name: 'Glass_0'
+}
+item {
+  id: 13
+  name: 'Glass_1'
+}
+item {
+  id: 14
+  name: 'Glass_2'
+}
+item {
+  id: 15
+  name: 'Glass_3'
+}
+item {
+  id: 16
+  name: 'Glass_4'
+}
+item {
+  id: 17
+  name: 'Glass_5'
+}
+item {
+  id: 18
+  name: 'Paper_0'
+}
+item {
+  id: 19
+  name: 'Paper_1'
+}
+item {
+  id: 20
+  name: 'Paper_2'
+}
+item {
+  id: 21
+  name: 'Paper_3'
+}
+item {
+  id: 22
+  name: 'Battery_0'
+}
+item {
+  id: 23
+  name: 'Battery_1'
+}
+item {
+  id: 24
+  name: 'Battery_2'
+}
+item {
+  id: 25
+  name: 'Battery_3'
+}

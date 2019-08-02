@@ -1,7 +1,7 @@
 # Deeplearning
 
 ## 1. Heavenflow
- * My hard coding deeplearning algorithm collections!!
+ * My hard coding deeplearning algorithm collections.
         basic source : deep-learning-from-scratch
         
 ## 2. asirra-dogs-cats-classification

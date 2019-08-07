@@ -10,3 +10,6 @@
 
 ## 3. deep-learning-from-scratch
  * source : https://github.com/WegraLee/deep-learning-from-scratch
+
+## 4. thesis
+ * Collection of current studies

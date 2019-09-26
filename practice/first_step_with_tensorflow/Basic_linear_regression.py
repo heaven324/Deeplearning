@@ -12,8 +12,8 @@ x_data = [v[0] for v in vectors_set]
 y_data = [v[1] for v in vectors_set]
 
 
-# plot 시각화
-import matplotlib.pyplot as plt
+## plot 시각화
+#import matplotlib.pyplot as plt
 
-plt.plot(x_data, y_data, 'ro')
-plt.show()
+#plt.plot(x_data, y_data, 'ro')
+#plt.show()

@@ -29,3 +29,8 @@ a = ["A", "B"]
 a += ['C', 'D']
 print(a) # ['A', 'B', 'C', 'D']
 
+
+# spiral_train
+a = 10
+idx = np.random.permutation(a)
+print(idx)

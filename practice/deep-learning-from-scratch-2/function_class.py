@@ -8,7 +8,7 @@
 # =============================================================================
 
 import numpy as np
-import function softmax, cross_entropy_error
+from function import softmax, cross_entropy_error
 
 # class define
 class Sigmoid:

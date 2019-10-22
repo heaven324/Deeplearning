@@ -34,3 +34,12 @@ print(a) # ['A', 'B', 'C', 'D']
 a = 10
 idx = np.random.permutation(a)
 print(idx)
+
+
+# util
+sa = np.random.random(10)
+b = a.argsort()
+for i in b:
+    print(a[i])
+print(b)
+

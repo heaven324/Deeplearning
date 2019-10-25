@@ -1,5 +1,8 @@
 # =============================================================================
-# cosine similarity = (x * y) / norm(x + ε) * norm(y + ε)
+# 1. cosine similarity = (x * y) / norm(x + ε) * norm(y + ε)
+# 2. Positive Pointwise Mutual Information (양의 사용정보량)
+#       PPMI = max(0, log_2{ (C(x,y)* N) / (C(x) * C(y)) })
+#                   ( C(x, y) : 동시발생 횟수, C(x) : x의 등장 횟수 )
 # =============================================================================
 
 import numpy as np
@@ -75,3 +78,26 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top = 5):
         count += 1
         if count >= top:
             return
+
+
+def ppmi(C, verbose = False, eps = 1e-8):
+    M = np.zeros_like(C, dtype = np.float32)
+    N = np.sum(C)
+    S = np.sum(C, axis = 0)
+    total = C.shape[0] * C.shape[1]
+    cnt = 0
+    
+    for i in range(C.shape[0]):
+        for j in range(C.shape[1]):
+            pmi = np.log2(C[i, j] * N / (S[i]*S[j]) + eps)
+            M[i, j] = max(0, pmi)
+            
+            if verbose:
+                cnt += 1
+                if cnt % (total//100) == 0:
+                    print('%.1f%% 완료'%(100*cnt/total))
+    return M
+
+
+    
+

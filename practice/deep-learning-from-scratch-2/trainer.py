@@ -30,12 +30,13 @@ class Trainer:
                 
                 loss = model.forward(batch_x, batch_t)
                 model.backward()
-                optimizer.update(model.params, model.grads)
+                params, grads = remove_duplicate(model.params, model.grads)
+                optimizer.update(params, grads)
                 
                 total_loss += loss
                 loss_count += 1
                 
-                if (iters + 1) % eval_interval == 0:
+                if iters % eval_interval == 0:
                     avg_loss = total_loss / loss_count
                     elapsed_time = time.time() - start_time
                     print( '| epoch : %d | repeat : %d / %d | time : %d[s]| loss : %.2f'%\
@@ -50,3 +51,34 @@ class Trainer:
         plt.xlabel('repeat (x' + str(self.eval_interval)+')')
         plt.ylabel('loss')
         plt.show()
+        
+        
+def remove_duplicate(params, grads):
+    params, grads = params[:], grads[:]  # copy list
+
+    while True:
+        find_flg = False
+        L = len(params)
+
+        for i in range(0, L - 1):
+            for j in range(i + 1, L):
+                # 가중치 공유 시
+                if params[i] is params[j]:
+                    grads[i] += grads[j]  # 경사를 더함
+                    find_flg = True
+                    params.pop(j)
+                    grads.pop(j)
+                # 가중치를 전치행렬로 공유하는 경우(weight tying)
+                elif params[i].ndim == 2 and params[j].ndim == 2 and \
+                     params[i].T.shape == params[j].shape and np.all(params[i].T == params[j]):
+                    grads[i] += grads[j].T
+                    find_flg = True
+                    params.pop(j)
+                    grads.pop(j)
+
+                if find_flg: break
+            if find_flg: break
+
+        if not find_flg: break
+
+    return params, grads

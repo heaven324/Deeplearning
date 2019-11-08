@@ -1,4 +1,4 @@
-import numpy as np
+from common.np import *
 from common.function_class import Embedding
 from common.negative_sampling_layer import NegativeSamplingLoss
     

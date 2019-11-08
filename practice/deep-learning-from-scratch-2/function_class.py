@@ -7,7 +7,8 @@
 #  2. cross entropy error = -(1/N)*sum(n, sum(k, t_nk*log y_nk))
 # =============================================================================
 
-import numpy as np
+from np import * #import numpy as np
+from config import GPU
 from function import softmax, cross_entropy_error
 from util import UnigramSampler
 
@@ -135,7 +136,7 @@ class Embedding:
     def backward(self, dout):
         dW, = self.grads
         dW[...] = 0
-        np.add.at(dW, self.idx, dout)
+        np.scatter_add(dW, self.idx, dout)
         return None
     
     

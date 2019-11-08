@@ -1,6 +1,8 @@
 import time
-import numpy as np
+import numpy
 import matplotlib.pyplot as plt
+from common.np import *
+
 
 class Trainer:
     def __init__(self, model, optimizer):
@@ -20,7 +22,7 @@ class Trainer:
         
         start_time = time.time()
         for epoch in range(max_epoch):
-            idx = np.random.permutation(np.arange(data_size))
+            idx = numpy.random.permutation(numpy.arange(data_size))
             x = x[idx]
             t = t[idx]
             
@@ -47,7 +49,9 @@ class Trainer:
     
     
     def plot(self, ylim = None):
-        plt.plot(np.arange(len(self.loss_list)), self.loss_list, label = 'train')
+        if ylim is not None:
+            plt.ylim(*ylim)
+        plt.plot(numpy.arange(len(self.loss_list)), self.loss_list, label = 'train')
         plt.xlabel('repeat (x' + str(self.eval_interval)+')')
         plt.ylabel('loss')
         plt.show()

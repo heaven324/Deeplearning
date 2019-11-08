@@ -1,4 +1,4 @@
-from util import preprocess, create_co_matrix, cos_similarity
+from common.util import preprocess, create_co_matrix, cos_similarity
 
 text = 'You say goodbye and I say hello.'
 corpus, word_to_id, id_to_word = preprocess(text)

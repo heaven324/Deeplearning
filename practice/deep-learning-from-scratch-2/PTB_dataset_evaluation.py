@@ -1,5 +1,5 @@
 import numpy as np
-from util import most_similar, create_co_matrix, ppmi
+from common.util import most_similar, create_co_matrix, ppmi
 import ptb
 
 window_size = 2

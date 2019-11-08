@@ -1,5 +1,5 @@
 import numpy as np
-from function_class import Affine, Sigmoid, SoftmaxWithLoss
+from common.function_class import Affine, Sigmoid, SoftmaxWithLoss
 
 
 class TwoLayerNet:

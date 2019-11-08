@@ -1,4 +1,4 @@
-from optimizer import SGD
+from common.optimizer import SGD
 from trainer import Trainer
 from dataset import spiral
 from spiral_two_layer_net import TwoLayerNet

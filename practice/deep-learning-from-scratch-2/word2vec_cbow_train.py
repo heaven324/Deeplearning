@@ -6,9 +6,9 @@ config.GPU = True
 
 import pickle
 from trainer import Trainer
-from optimizer import Adam
+from common.optimizer import Adam
 from word2vec_CBOW import CBOW
-from util import create_contexts_target, to_cpu, to_gpu
+from common.util import create_contexts_target, to_cpu, to_gpu
 import ptb
 
 

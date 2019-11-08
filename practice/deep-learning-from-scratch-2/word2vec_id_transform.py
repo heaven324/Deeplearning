@@ -1,4 +1,4 @@
-from util import preprocess
+from common.util import preprocess
 
 
 text = 'You say goodbye and I say hello.'

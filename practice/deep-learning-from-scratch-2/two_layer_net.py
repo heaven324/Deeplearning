@@ -1,4 +1,4 @@
-import function_class as fc
+import common.function_class as fc
 import numpy as np
 
 class TwoLayerNet:

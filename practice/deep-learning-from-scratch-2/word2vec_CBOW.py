@@ -1,6 +1,7 @@
 import numpy as np
-from function_class import Embedding, NegativeSamplingLoss
-
+from common.function_class import Embedding
+from common.negative_sampling_layer import NegativeSamplingLoss
+    
 
 class CBOW:
     def __init__(self, vocab_size, hidden_size, window_size, corpus):

@@ -5,20 +5,8 @@
 #                   ( C(x, y) : 동시발생 횟수, C(x) : x의 등장 횟수 )
 # =============================================================================
 
-from np import *
-import collections
-
-def to_cpu(x):
-    import numpy
-    if type(x) == numpy.ndarray:
-        return x
-    return np.asnumpy(x)
-
-def to_gpu(x):
-    import cupy
-    if type(x) == cupy.ndarray:
-        return x
-    return np.asnumpy(x)
+import os
+from common.np import *
 
 
 def preprocess(text):
@@ -39,25 +27,6 @@ def preprocess(text):
     
     return corpus, word_to_id, id_to_word
 
-
-def create_co_matrix(corpus, vocab_size, window_size = 1):
-    corpus_size = len(corpus)
-    co_matrix = np.zeros((vocab_size, vocab_size), dtype = np.int32)
-    
-    for idx, word_id in enumerate(corpus):
-        for i in range(1, window_size + 1):
-            left_idx = idx - 1
-            right_idx = idx + 1
-            
-            if left_idx >= 0:
-                left_word_id = corpus[left_idx]
-                co_matrix[word_id, left_word_id] += 1
-            
-            if right_idx < corpus_size:
-                right_word_id = corpus[right_idx]
-                co_matrix[word_id, right_word_id] += 1
-    return co_matrix
-    
 
 def cos_similarity(x, y, eps = 1e-8):
     nx = x / np.sqrt(np.sum(x ** 2) + eps)
@@ -91,6 +60,43 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top = 5):
         count += 1
         if count >= top:
             return
+
+        
+def convert_one_hot(corpus, vocab_size):
+    N = corpus.shape[0]
+
+    if corpus.ndim == 1:
+        one_hot = np.zeros((N, vocab_size), dtype=np.int32)
+        for idx, word_id in enumerate(corpus):
+            one_hot[idx, word_id] = 1
+
+    elif corpus.ndim == 2:
+        C = corpus.shape[1]
+        one_hot = np.zeros((N, C, vocab_size), dtype=np.int32)
+        for idx_0, word_ids in enumerate(corpus):
+            for idx_1, word_id in enumerate(word_ids):
+                one_hot[idx_0, idx_1, word_id] = 1
+
+    return one_hot
+
+
+def create_co_matrix(corpus, vocab_size, window_size = 1):
+    corpus_size = len(corpus)
+    co_matrix = np.zeros((vocab_size, vocab_size), dtype = np.int32)
+    
+    for idx, word_id in enumerate(corpus):
+        for i in range(1, window_size + 1):
+            left_idx = idx - 1
+            right_idx = idx + 1
+            
+            if left_idx >= 0:
+                left_word_id = corpus[left_idx]
+                co_matrix[word_id, left_word_id] += 1
+            
+            if right_idx < corpus_size:
+                right_word_id = corpus[right_idx]
+                co_matrix[word_id, right_word_id] += 1
+    return co_matrix
 
 
 def ppmi(C, verbose = False, eps = 1e-8):
@@ -127,66 +133,14 @@ def create_contexts_target(corpus, window_size = 1):
     return np.array(contexts), np.array(target)
 
 
-def convert_one_hot(corpus, vocab_size):
-    N = corpus.shape[0]
+def to_cpu(x):
+    import numpy
+    if type(x) == numpy.ndarray:
+        return x
+    return np.asnumpy(x)
 
-    if corpus.ndim == 1:
-        one_hot = np.zeros((N, vocab_size), dtype=np.int32)
-        for idx, word_id in enumerate(corpus):
-            one_hot[idx, word_id] = 1
-
-    elif corpus.ndim == 2:
-        C = corpus.shape[1]
-        one_hot = np.zeros((N, C, vocab_size), dtype=np.int32)
-        for idx_0, word_ids in enumerate(corpus):
-            for idx_1, word_id in enumerate(word_ids):
-                one_hot[idx_0, idx_1, word_id] = 1
-
-    return one_hot
-                
-    
-class UnigramSampler:
-    def __init__(self, corpus, power, sample_size):
-        self.sample_size = sample_size
-        self.vocab_size = None
-        self.word_p = None
-        
-        counts = collections.Counter()
-        for word_id in corpus:
-            counts[word_id] += 1
-        
-        vocab_size = len(counts)
-        self.vocab_size = vocab_size
-        
-        self.word_p = np.zeros(vocab_size)
-        for i in range(vocab_size):
-            self.word_p[i] = counts[i]
-            
-        self.word_p = np.power(self.word_p, power)
-        self.word_p /= np.sum(self.word_p)
-        
-    
-    def get_negative_sample(self, target):
-        batch_size = target.shape[0]
-        
-        # CPU
-        negative_sample = np.zeros((batch_size, self.sample_size), dtype = np.int32)
-        
-        for i in range(batch_size):
-            p = self.word_p.copy()
-            target_idx = target[i]
-            p[target_idx] = 0
-            p /= p.sum()
-            negative_sample[i, :] = np.random.choice(self.vocab_size, size = self.sample_size, replace = False, p = p)
-        return negative_sample
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+def to_gpu(x):
+    import cupy
+    if type(x) == cupy.ndarray:
+        return x
+    return np.asnumpy(x)

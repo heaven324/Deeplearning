@@ -3,7 +3,7 @@
 # =============================================================================
 
 import numpy as np
-from function_class import MatMul
+from common.function_class import MatMul
 
 
 # sample context

@@ -1,7 +1,7 @@
 from trainer import Trainer
-from optimizer import Adam
+from common.optimizer import Adam
 from word2vec_simple_cbow import SimpleCBOW
-from util import preprocess, create_contexts_target, convert_one_hot
+from common.util import preprocess, create_contexts_target, convert_one_hot
 
 window_size = 1
 hidden_size = 5

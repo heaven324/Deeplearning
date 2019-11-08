@@ -1,5 +1,5 @@
 import numpy as np
-from util import UnigramSampler
+from common.negative_sampling_layer import UnigramSampler
 
 corpus = np.array([0, 1, 2, 3, 4, 1, 2, 3])
 power = 0.75

@@ -1,4 +1,6 @@
-from config import GPU
+# coding: utf-8
+from common.config import GPU
+
 
 if GPU:
     import cupy as np

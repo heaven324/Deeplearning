@@ -1,5 +1,5 @@
 import numpy as np
-from optimizer import SGD
+from common.optimizer import SGD
 from dataset import spiral
 import matplotlib.pyplot as plt
 from spiral_two_layer_net import TwoLayerNet

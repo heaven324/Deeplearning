@@ -1,5 +1,5 @@
 import numpy as np
-from function_class import MatMul, SoftmaxWithLoss
+from common.function_class import MatMul, SoftmaxWithLoss
 
 class SimpleCBOW:
     def __init__(self, vocab_size, hidden_size):

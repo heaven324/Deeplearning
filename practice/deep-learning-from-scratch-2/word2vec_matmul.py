@@ -1,5 +1,5 @@
 import numpy as np
-from function_class import MatMul
+from common.function_class import MatMul
 
 c = np.array([[1, 0, 0, 0, 0, 0, 0]])
 W = np.random.randn(7, 3)

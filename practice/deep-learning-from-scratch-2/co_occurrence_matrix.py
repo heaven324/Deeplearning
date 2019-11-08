@@ -1,5 +1,5 @@
 import numpy as np
-from util import preprocessing
+from common.util import preprocessing
 
 
 text = 'You say goodbye and I say hello.'

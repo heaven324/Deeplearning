@@ -1,4 +1,4 @@
-from util import preprocess, create_contexts_target, convert_one_hot
+from common.util import preprocess, create_contexts_target, convert_one_hot
 
 text = 'You say goodbye and I say hello.'
 corpus, word_to_id, id_to_word = preprocess(text)

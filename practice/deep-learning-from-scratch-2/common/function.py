@@ -8,7 +8,7 @@
 # =============================================================================
 
 
-import numpy as np
+from common.np import *
 
 
 # function define

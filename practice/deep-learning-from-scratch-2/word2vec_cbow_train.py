@@ -1,7 +1,7 @@
 import numpy as np
 
 # using gpu environment
-import config
+from common import config
 config.GPU = True
 
 import pickle

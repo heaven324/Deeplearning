@@ -1,9 +1,14 @@
 import numpy as np
+
+# using gpu environment
+import config
+config.GPU = True
+
 import pickle
 from trainer import Trainer
 from optimizer import Adam
 from word2vec_CBOW import CBOW
-from util import create_contexts_target, to_cpu
+from util import create_contexts_target, to_cpu, to_gpu
 import ptb
 
 
@@ -19,7 +24,8 @@ corpus, word_to_id, id_to_word = ptb.load_data('train')
 vocab_size = len(word_to_id)
 
 contexts, target = create_contexts_target(corpus, window_size)
-
+if config.GPU:
+    contexts, target = to_gpu(contexts), to_gpu(target)
 
 # create model
 model = CBOW(vocab_size, hidden_size, window_size, corpus)
@@ -34,6 +40,8 @@ trainer.plot()
 
 # save data
 word_vecs = model.word_vecs
+if config.GPU:
+    word_vecs = to_cpu(word_vecs)
 params = {}
 params['word_vecs'] = word_vecs.astype(np.float16)
 params['word_to_id'] = word_to_id

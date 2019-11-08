@@ -5,11 +5,18 @@
 #                   ( C(x, y) : 동시발생 횟수, C(x) : x의 등장 횟수 )
 # =============================================================================
 
-import numpy as np
+from np import *
 import collections
 
 def to_cpu(x):
-    if type(x) == np.ndarray:
+    import numpy
+    if type(x) == numpy.ndarray:
+        return x
+    return np.asnumpy(x)
+
+def to_gpu(x):
+    import cupy
+    if type(x) == cupy.ndarray:
         return x
     return np.asnumpy(x)
 

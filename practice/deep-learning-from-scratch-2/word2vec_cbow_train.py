@@ -16,7 +16,7 @@ import ptb
 window_size = 5
 hidden_size = 100
 batch_size = 100
-max_epoch = 10
+max_epoch = 100
 
 
 # read data

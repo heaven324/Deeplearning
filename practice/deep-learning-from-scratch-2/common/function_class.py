@@ -103,13 +103,19 @@ class Softmax:  # page 못찾음
         return dx
 
 
-class SoftmaxWithLoss:
+class SoftmaxWithLoss:   # 1(page 179)
     def __init__(self):
         self.params, self.grads = [], []
-        self.y = None
-        self.t = None
+        self.y = None   # backward에서 사용하기 위해 forward의 데이터 값을 저장
+        self.t = None   # backward에서 사용하기 위해 forward의 데이터 값을 저장
         
     def forward(self, x, t):
+        """
+        common.function에서 정의된 softmax함수의 x결과 값을 뽑고(y)
+        common.function에서 정의된 cross_entropy_error(y, t)의 결과값을 리턴(loss)
+        클래스 변수에 y와 t를 저장
+        t를 저장 할 때 원핫 벡터가 아닌 argmax로 저장 (batch_size, 1)의 형태
+        """
         self.t = t
         self.y = softmax(x)
         
@@ -120,6 +126,12 @@ class SoftmaxWithLoss:
         return loss
     
     def backward(self, dout = 1):
+        """
+        클래스 변수에서 현재 softmax결과값(y)과 정답레이블(t)을 전달받아
+        dout 에 대한 역전파를 리턴
+
+        이론 : dx = ∂L/∂X = (∂L/∂Z) * (Y - t)
+        """
         batch_size = self.t.shape[0]
         
         dx = self.y.copy()
@@ -129,17 +141,27 @@ class SoftmaxWithLoss:
         return dx
     
     
-class Sigmoid:
+class Sigmoid:   # 1(page 170)
     def __init__(self):
         self.params, self.grads = [], []
-        self.out = None
+        self.out = None   # backward에서 사용하기 위해 forward의 결과 데이터 값을 저장
 
     def forward(self, x):
+        """
+        입력 데이터 x에 sigmoid식을 대입한 후(out) 클래스변수에 저장하고 out을 리턴
+
+        이론 : sigmoid = 1 / (1 + exp(-x))
+        """
         out = 1 / (1 + np.exp(-x))
         self.out = out
         return out
 
     def backward(self, dout):
+        """
+        클래스 변수에서 현재 sigmoid결과값(out)을 전달받아 dout에 대한 역전파를 리턴
+
+        이론 : dx = ∂L/∂X = (∂L/∂y) * (1 - y) * y
+        """
         dx = dout * (1.0 - self.out) * self.out
         return dx
     
@@ -148,19 +170,31 @@ class SigmoidWithLoss:
     def __init__(self):
         self.params, self.grads = [], []
         self.loss = None
-        self.y = None
-        self.t = None
+        self.y = None   # backward에서 사용하기 위해 forward의 결과 데이터 값을 저장
+        self.t = None   # backward에서 사용하기 위해 forward의 입력 데이터 값을 저장
     
     
     def forward(self, x, t):
+        """
+        입력 데이터 x에 sigmoid식을 대입한 후(y) 클래스변수에 저장하고
+
+
+        이론 : sigmoid = 1 / (1 + exp(-x))
+        """
         self.t = t
         self.y = 1 / (1 + np.exp(-x))
         
         self.loss = cross_entropy_error(np.c_[1 - self.y, self.y], self.t)
-        
+        # 왜 y를 이어붙여서 loss를 출력하지? 지금 당장에는 이해가 안되네...
+
         return self.loss
     
     def backward(self, dout = 1):
+        """
+        클래스 변수에서 현재 sigmoid결과값(y)을 전달받아 dout에 대한 역전파를 리턴
+
+        이론 : dx = ∂L/∂X = (∂L/∂Z) * (y - t)
+        """
         batch_size = self.t.shape[0]
         
         dx = (self.y - self.t) * dout / batch_size

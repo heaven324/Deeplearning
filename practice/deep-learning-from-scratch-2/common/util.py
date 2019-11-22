@@ -10,6 +10,28 @@ from common.np import *
 
 
 def preprocess(text):
+    """
+    preprocessing   2(page 85)
+        - 여러 문장이 들어있는 텍스트 데이터들을 말뭉치로 전처리 하기 위한 함수
+
+    1. text : 정제되지 않은 텍스트 데이터
+
+    2. words : text 에 포함된 단어들의 리스트(순차적으로 저장됨)
+
+    3. word_to_id : words의 단어(key)들에 id(value)를 부여한 딕셔너리 변수
+                    (중복 없음)
+
+    4. id_to_word : id(key)에 단어(value)들을 매칭한 변수
+
+    5. corpus : words 자체를 활용하기 쉽지 않으므로 단어대신 id로 대체해서 
+                생성한 말뭉치
+
+    설명 : 데이터 내의 대문자를 소문자로 통일하고 '.' 과 같은 특수문자들을 분류
+           하기 쉽게 ' .'로 대체한다.(정규표현식을 이용하면 더 쉽다.) 
+           그 후 words라는 변수에 공백을 기준으로 단어들을 리스트화 한다. 
+           그 후 단어들의 조작이 쉽게 단어에 id를 붙여 대응표를 
+           딕셔너리(id_to_word, word_to_id)로 저장
+    """
     text = text.lower()
     text = text.replace('.', ' .')
     words = text.split(' ')
@@ -29,6 +51,24 @@ def preprocess(text):
 
 
 def cos_similarity(x, y, eps = 1e-8):
+    """
+    Cosine Similarity   2(page 93)
+        - 벡터(단어)간 유사도를 측정하는 함수
+
+    1. x : 입력 벡터(단어)
+
+    2. y : 입력 벡터(단어)
+
+    3. eps : 0으로 나누어 지는 것을 방지하는 아주 작은 실수
+
+    4. nx : x 나누기 x+eps 의 노름을 한 변수
+
+    5. ny : y 나누기 y+eps 의 노름을 한 변수
+
+    이론 : 1). cosine similarity = (x * y) / ∥x + ε∥ * ∥y + ε∥
+
+    설명 : x와 y를 입력받아 두 변수의 nx, ny를 각각 구해서 곱한 수를 리턴
+    """
     nx = x / np.sqrt(np.sum(x ** 2) + eps)
     ny = y / np.sqrt(np.sum(y ** 2) + eps)
     return np.dot(nx, ny)
@@ -144,6 +184,33 @@ def to_gpu(x):
     if type(x) == cupy.ndarray:
         return x
     return np.asnumpy(x)
+
+
+def clip_grads(grads, max_norm):
+    """
+    gradient clipping   2(page 246)
+        - 기울기 폭발을 방지하기 위한 clipping함수
+
+    1. grads : 모든 매개변수의 기울기들을 하나로 모은 변수(list나 array의 형태)
+
+    2. max_norm : 기울기 총합의 문턱값(threshold)
+
+    이론 : 1).  ∥ x ∥ = sqrt(x^2)
+           2). rate = threshold / ∥ x ∥
+           3). clipping = grads의 각 기울기에 rate를 곱한다.
+
+    설명 : 기울기(grads)들의 총합의 노름(total_norm)을 구해 rate를 계산하고
+           rate의 값이 1 보다 작다면 clipping을 한다.
+    """
+    total_norm = 0
+    for grad in grads:
+        total_norm += np.sum(grad ** 2)
+    total_norm = np.sqrt(total_norm)
+
+    rate = max_norm / (total_norm + 1e-6)
+    if rate <1:
+        for grad in grads:
+            grad *= rate
 
 
 def analogy(a, b, c, word_to_id, id_to_word, word_matrix, top = 5, answer = None):

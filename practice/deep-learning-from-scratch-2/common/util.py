@@ -1,11 +1,3 @@
-# =============================================================================
-# 1. cosine similarity = (x * y) / norm(x + ε) * norm(y + ε)
-# 2. Positive Pointwise Mutual Information (양의 사용정보량)
-#       PPMI = max(0, log_2{ (C(x,y)* N) / (C(x) * C(y)) })
-#                   ( C(x, y) : 동시발생 횟수, C(x) : x의 등장 횟수 )
-# =============================================================================
-
-import os
 from common.np import *
 
 
@@ -75,6 +67,23 @@ def cos_similarity(x, y, eps = 1e-8):
 
 
 def most_similar(query, word_to_id, id_to_word, word_matrix, top = 5):
+    """
+    most similar   2(page 95)
+        - 검색어와 비슷한 단어를 유사도 순으로 출력해주는 함수
+
+    1. query : 검색하고자하는 단어
+
+    2. word_to_id : 단어에서 단어 ID로의 딕셔너리
+
+    3. id_to_word : 단어 ID에서 단어로의 딕셔너리
+
+    4. word_matrix : 단어 벡터들을 한데 모은 행렬
+
+    6: top : 상위 몇개까지 출력할지 설정
+
+    설명 : query가 말뭉치에 들어있는 경우에 맞는 벡터를 찾아서 코사인 유사도를 계산하고
+           유사도를 기준으로 top개수 만큼 내림차순으로 출력
+    """
     # 검색어
     if query not in word_to_id:
         print('%s 를 찾을 수 없습니다'%query)
@@ -103,6 +112,17 @@ def most_similar(query, word_to_id, id_to_word, word_matrix, top = 5):
 
         
 def convert_one_hot(corpus, vocab_size):
+    """
+    Convert One Hot   2(page 134)
+        - 맥락과 타깃을 단어 ID에서 원핫 표현으로 변환해주는 함수
+
+    1. corpus : 단어 ID목록
+
+    2. vocab_size : 어휘 수
+
+    설명 : 1차원인 경우와 2차원인 경우를 나누어서 원핫 표현으로 변환해준다
+           차원이 하나 늘어난다는 특징이 있다.
+    """
     N = corpus.shape[0]
 
     if corpus.ndim == 1:
@@ -121,6 +141,21 @@ def convert_one_hot(corpus, vocab_size):
 
 
 def create_co_matrix(corpus, vocab_size, window_size = 1):
+    """
+    Create Co Matrix   2(page 91)
+        - 모든 단어에 대한 동시발생 행렬을 구해주는 함수
+
+    1. corpus : 말뭉치
+
+    2. vocab_size : 말뭉치 크기
+
+    3. window_size : 맥락(주변 단어)의 크기
+
+    설명 : co_matrix를 0으로 채워진 2차원 배열로 초기화합니다. 
+           그다음은 말뭉치의 모든 단어 각각에 대하여 윈도우에 포함된 주변 단어를 
+           세어나갑니다.
+           이때 말뭉치의 왼쪽 끝과 오른쪽 끝 경계를 벗어나지 않는지도 확인합니다.
+    """
     corpus_size = len(corpus)
     co_matrix = np.zeros((vocab_size, vocab_size), dtype = np.int32)
     
@@ -140,6 +175,26 @@ def create_co_matrix(corpus, vocab_size, window_size = 1):
 
 
 def ppmi(C, verbose = False, eps = 1e-8):
+    """
+    Positive Pointwise Mutual Information   2(page 99)
+    (점별 상호 정보량)
+        - 동시 발생 행렬을 입력받아 단어별 상호 정보량 행렬을 구해주는 함수
+
+    1. C : 동시 발생 행렬
+
+    2. verbose : 중간 중간 진행상황을 알릴지에 대한 스위치 변수
+
+    3. eps = 0으로 나누기 오류를 막기위한 아주 작은 실수
+
+    4. M : PPMI결과 값을 담는 변수
+
+    5. N : 말뭉치에 포함된 단어 수
+
+    6. S : 단어별 빈도수
+
+    이론 : 1). PMI(x, y) = log_2( P(x, y) / P(x)P(y) ) = log_2( C(x, y)*N / C(x)C(y) )
+           2). PPMI(x, y) = max(0, PMI(x, y))
+    """
     M = np.zeros_like(C, dtype = np.float32)
     N = np.sum(C)
     S = np.sum(C, axis = 0)
@@ -159,6 +214,16 @@ def ppmi(C, verbose = False, eps = 1e-8):
 
 
 def create_contexts_target(corpus, window_size = 1):
+    """
+    Create Contexts Target   2(page 133)
+        - 맥락과 타깃을 만드는 함수
+
+    1. corpus : 단어 ID의 배열
+
+    2. window_size : 맥락의 크기
+
+    설명 : 맥락과 타깃을 각각 넘파이 다치원 배열로 돌려준다
+    """
     target = corpus[window_size:-window_size]
     contexts = []
     
@@ -174,12 +239,20 @@ def create_contexts_target(corpus, window_size = 1):
 
 
 def to_cpu(x):
+    """
+    만약 x가 numpy array라면 그대로 리턴하고 아니라면 
+    numpy array로 변환해서 리턴
+    """
     import numpy
     if type(x) == numpy.ndarray:
         return x
     return np.asnumpy(x)
 
 def to_gpu(x):
+    """
+    만약 x가 cupy array라면 그대로 리턴하고 아니라면 
+    cupy array로 변환해서 리턴
+    """
     import cupy
     if type(x) == cupy.ndarray:
         return x
@@ -214,6 +287,26 @@ def clip_grads(grads, max_norm):
 
 
 def analogy(a, b, c, word_to_id, id_to_word, word_matrix, top = 5, answer = None):
+    """
+    Analogy   2(page 183)
+        - 단어의 분산표현을 가지고 유추문제를 푸는 함수
+
+    1. a, b, c : 물어볼 문제 단어들
+
+    2. word_to_id : words의 단어(key)들에 id(value)를 부여한 딕셔너리 변수
+                    (중복 없음)
+
+    3. id_to_word : words의 id(key)들에 단어(value)를 부여한 딕셔너리 변수
+
+    4. word_matrix : 단어의 분산 표현
+
+    5. top : 출력 범위
+
+    6. answer : 원하는 정답 단어
+
+    설명 : 단어 벡터들의 사칙연산 후 정규화 하여 유사도 순으로 top만큼의 단어들을
+           츨력한다
+    """
     for word in (a, b, c):
         if word not in word_to_id:
             print('%s(을)를 찾을 수 없습니다.'%word)

@@ -177,6 +177,7 @@ class SigmoidWithLoss:
     def forward(self, x, t):
         """
         입력 데이터 x에 sigmoid식을 대입한 후(y) 클래스변수에 저장하고
+        common.function안에 cross_entropy_error(y, t) 를 리턴
 
 
         이론 : sigmoid = 1 / (1 + exp(-x))
@@ -201,19 +202,31 @@ class SigmoidWithLoss:
         return dx
     
 
-class Embedding:
+class Embedding:   # 2(page 154)
+    """
+    맥락(원핫표현)과 가중치의 행렬곱이 특정행을 추출하는 것 뿐이기에
+    사실상 행렬곱은 필요없기 때문에 특정행을 추출하는 클래스 생성(효율성)
+    """
     def __init__(self, W):
         self.params = [W]
         self.grads = [np.zeros_like(W)]
         self.idx = None
         
     def forward(self, idx):
+        """
+        인덱스(숫자나 array의 형태)를 입력받아 W[idx]를 리턴
+        
+        Embedding_layer.py 참고
+        """
         W, = self.params
         self.idx = idx
         out = W[idx]
         return out
     
     def backward(self, dout):
+        """
+        dW에 forward에서 썼던 idx항에 dout을 더한다
+        """
         dW, = self.grads
         dW[...] = 0
 
@@ -222,4 +235,8 @@ class Embedding:
 
         # cupy
         #np.scatter_add(dW, self.idx, dout)
+
+        # 원래 코드
+        # for i, word_id in enumerate(self.idx):
+            # dW[word_id] += dout[i]
         return None

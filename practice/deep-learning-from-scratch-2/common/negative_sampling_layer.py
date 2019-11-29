@@ -122,6 +122,16 @@ class NegativeSamplingLoss:   # 2(page 174)
                    (낮은 확률의 단어를 구제하는 변수)
 
         4. sample_size : 부정 샘플링할 단어 수(긍정 + 부정 단어만큼 layer 생성)
+
+        5. sampler : UnigramSampler 클래스를 담은 변수
+
+        6. loss_layers : SigmoidWithLoss 클래스를 sample_size + 1 만큼 담은 리스트 변수
+
+        7. embed_dot_layers : EmbeddingDot 클래스를 sample_size + 1 만큼 담은 리스트 변수
+
+        8. params, grads : embed_dot_layers 리스트에 담긴 EmbeddingDot 클래스 들의
+                           params와 grads를 한데 모아 담은 변수
+                           (단순 객체복사를 위해 변경가능 객체(list)들이 담겨있다)
         """
         self.sample_size = sample_size
         self.sampler = UnigramSampler(corpus, power, sample_size)
@@ -135,6 +145,11 @@ class NegativeSamplingLoss:   # 2(page 174)
             
     
     def forward(self, h, target):
+        """
+        init에서 정의한 클래스들을 이용해 부정단어를 샘플링하고 
+        순서대로 forward를 진행하는데 score_label이 긍정(1)과 부정(0)이 다르기 때문에
+        따로 진행 후 loss 를 출력
+        """
         batch_size = target.shape[0]
         negative_sample = self.sampler.get_negative_sample(target)
         
@@ -153,6 +168,9 @@ class NegativeSamplingLoss:   # 2(page 174)
     
     
     def backward(self, dout = 1):
+        """
+        init에서 정의한 클래스들 각각 순서대로 backward를 진행
+        """
         dh = 0
         for l0, l1 in zip(self.loss_layers, self.embed_dot_layers):
             dscore = l0.backward(dout)

@@ -24,7 +24,7 @@ class Affine:   # 1(page 175)
         클래스 변수에서 가중치 편향을 전달받아 행렬곱 연산을 해서 리턴
         backward에서 사용하기 위해 x값도 클래스 변수로 저장
 
-        이론 : Y = X ⊙ Weight + bias
+        이론 : Y = XㆍWeight + bias
         """
         W, b = self.params
         out = np.dot(x, W) + b
@@ -36,8 +36,8 @@ class Affine:   # 1(page 175)
         클래스 변수에서 현재 가중치와 편향을 전달받아 x의 역전파(dx)를 리턴하고
         기울기에 대한 클래스 변수에 가중치와 편향(W, b)의 역전파(dW, db)를 저장
 
-        이론 : 1). dx = ∂L/∂X = (∂L/∂Y) ⊙ W^T
-               2). dW = ∂L/∂W = X^T ⊙ (∂L/∂Y)
+        이론 : 1). dx = ∂L/∂X = (∂L/∂Y)ㆍW^T
+               2). dW = ∂L/∂W = X^Tㆍ(∂L/∂Y)
                3). db = ∂L/∂B = ∂L/∂Y
         """
         W, b = self.params

@@ -1,6 +1,6 @@
 from common import config
 # for GPU
-# config.GPU = True
+config.GPU = True
 from common.optimizer import SGD
 from trainer import RnnlmTrainer
 from common.util import eval_perplexity, to_gpu

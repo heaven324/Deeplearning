@@ -231,10 +231,10 @@ class Embedding:   # 2(page 154)
         dW[...] = 0
 
         # numpy
-        #np.add.at(dW, self.idx, dout)
+        np.add.at(dW, self.idx, dout)
 
         # cupy
-        np.scatter_add(dW, self.idx, dout)
+        #np.scatter_add(dW, self.idx, dout)
 
         # 원래 코드
         # for i, word_id in enumerate(self.idx):

@@ -260,7 +260,7 @@ class TimeLSTM:
         N, T, H = dhs.shape
         D = Wx.shape[0]
 
-        dxs = np.empty((N, T, H), dtype = 'f')
+        dxs = np.empty((N, T, D), dtype = 'f')
         dh, dc = 0, 0
 
         grads = [0, 0, 0]

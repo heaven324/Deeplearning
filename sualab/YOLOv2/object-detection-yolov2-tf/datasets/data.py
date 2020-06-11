@@ -112,14 +112,14 @@ class DataSet(object):
         :param images: np.ndarray, shape: (N, H, W, C)
         :param labels: np.ndarray, shape: (N, g_H, g_W, anchors, 5 + num_classes).
         """
-        if labels is not None:
+        if labels is not None:     # 라벨이 존재한다면 이미지의 개수와 라벨의 개수가 맞는지 확인
             assert images.shape[0] == labels.shape[0],\
                 ('Number of examples mismatch, between images and labels')
         self._num_examples = images.shape[0]
         self._images = images
         self._labels = labels  # NOTE: this can be None, if not given.
         # image/label indices(can be permuted)
-        self._indices = np.arange(self._num_examples, dtype=np.uint)
+        self._indices = np.arange(self._num_examples, dtype=np.uint)     # 이미지 개수만큼의 인덱스 생성
         self._reset()
 
     def _reset(self):
@@ -149,11 +149,11 @@ class DataSet(object):
         """
 
         if shuffle:
-            indices = np.random.choice(self._num_examples, batch_size)
+            indices = np.random.choice(self._num_examples, batch_size) # 배치사이즈만큼 무작위 이미지 선택
         else:
             indices = np.arange(batch_size)
         batch_images = self._images[indices]
-        if self._labels is not None:
+        if self._labels is not None:                                   # 라벨이 있는 경우에 batch_images에 맞게 라벨을 선택
             batch_labels = self._labels[indices]
         else:
             batch_labels = None
@@ -171,7 +171,7 @@ class DataSet(object):
         start_index = self._index_in_epoch
 
         # Shuffle the dataset, for the first epoch
-        if self._epochs_completed == 0 and start_index == 0 and shuffle:
+        if self._epochs_completed == 0 and start_index == 0 and shuffle: # 첫에폭에 shuffle=True 라면 모든 이미지 인덱스 shuffle
             np.random.shuffle(self._indices)
 
         # Go to the next epoch, if current index goes beyond the total number
@@ -180,38 +180,39 @@ class DataSet(object):
             # Increment the number of epochs completed
             self._epochs_completed += 1
             # Get the rest examples in this epoch
-            rest_num_examples = self._num_examples - start_index
-            indices_rest_part = self._indices[start_index:self._num_examples]
+            rest_num_examples = self._num_examples - start_index              # 현재 에폭에 남은 이미지 수
+            indices_rest_part = self._indices[start_index:self._num_examples] # 그 이미지에 맞는 남은 인덱스 추출(rest_part)
 
             # Shuffle the dataset, after finishing a single epoch
             if shuffle:
-                np.random.shuffle(self._indices)
+                np.random.shuffle(self._indices)                              # 에폭이 끝난 관계로 다시 인덱스 shuffle
 
             # Start the next epoch
-            start_index = 0
-            self._index_in_epoch = batch_size - rest_num_examples
+            start_index = 0                                                   # batch_size <= 전에폭 처리안된 이미지들 + 현에폭 처리할 이미지들
+            self._index_in_epoch = batch_size - rest_num_examples             # 현에폭 처리할 이미지수 계산
             end_index = self._index_in_epoch
-            indices_new_part = self._indices[start_index:end_index]
+            indices_new_part = self._indices[start_index:end_index]           # 0부터 처리할 이미지 수 만큼(new_part)
 
-            images_rest_part = self._images[indices_rest_part]
-            images_new_part = self._images[indices_new_part]
+            images_rest_part = self._images[indices_rest_part]                # 실제 이미지 지정(rest_part)
+            images_new_part = self._images[indices_new_part]                  # 실제 이미지 지정(new_part)
             batch_images = np.concatenate(
-                (images_rest_part, images_new_part), axis=0)
-            if self._labels is not None:
+                (images_rest_part, images_new_part), axis=0)                  # rest_part and new_part 이어붙이기
+            if self._labels is not None:                                      # 이미지에 맞는 라벨 처리에 관한 if문
                 labels_rest_part = self._labels[indices_rest_part]
                 labels_new_part = self._labels[indices_new_part]
                 batch_labels = np.concatenate(
                     (labels_rest_part, labels_new_part), axis=0)
             else:
                 batch_labels = None
-        else:
-            self._index_in_epoch += batch_size
+        else:                                              # 다음 에폭으로 넘어가는게 아니라면
+            self._index_in_epoch += batch_size             # start_index를 저장해 두었으니 end_index로 변경
             end_index = self._index_in_epoch
-            indices = self._indices[start_index:end_index]
-            batch_images = self._images[indices]
+            indices = self._indices[start_index:end_index] # batch_size만큼 현재 순서의 indices추출
+            batch_images = self._images[indices]           # 그에 맞는 image지정
             if self._labels is not None:
-                batch_labels = self._labels[indices]
+                batch_labels = self._labels[indices]       # 그에 맞는 label지정(True일 경우)
             else:
                 batch_labels = None
 
-        return batch_images, batch_labels
+        return batch_images, batch_labels # 1. next epoch인 경우    code line 198, 203
+                                          # 2. current epoch인 경우 code line 211, 213

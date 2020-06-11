@@ -1,0 +1,2 @@
+IOU : Intersection over Union ( Overlapping Region / Combined Region )
+		link : https://ballentain.tistory.com/12

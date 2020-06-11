@@ -19,5 +19,5 @@
 * Object_detection_YOLOv2 study and code explain file
 * source : https://github.com/sualab/object-detection-yolov2-tf
 
-## 6. thesis
+## 6. Deeplearning_papers
  * Collection of current studies

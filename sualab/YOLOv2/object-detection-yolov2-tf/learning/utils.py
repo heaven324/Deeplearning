@@ -95,11 +95,15 @@ def convert_boxes(input_y):
 
 
 def predict_nms_boxes(input_y, conf_thres=0.2, iou_thres=0.5):
-    is_batch = len(input_y.shape) == 5
-    if not is_batch:
-        input_y = np.expand_dims(input_y, 0)
-    boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1]))
-    nms_boxes = []
+    '''
+    evauatiors.py에서 쓰이는 경우
+    :param input_y: np.ndarray, shape: (N, 5 + num_classes).
+    '''
+    is_batch = len(input_y.shape) == 5                                     # is_batch : Bool
+    if not is_batch:                                                       # input_y가 5차원이 아니라면(그럼 2차원이라면?)
+         input_y = np.expand_dims(input_y, 0)                              # 차원을 하나 늘린다(axis = 0) : 3차원
+    boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1])) # 형태를 reshape
+    nms_boxes = []                                                         # nms에 대해서 더 알아보자
     for box in boxes:
         nms_box = nms(box, conf_thres, iou_thres)
         nms_boxes.append(nms_box)

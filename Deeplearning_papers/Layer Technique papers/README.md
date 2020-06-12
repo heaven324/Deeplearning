@@ -14,3 +14,10 @@
 
 ## 5. variational Dropout
  * link : https://arxiv.org/abs/1701.05369
+
+## 6. Non_maximum_suppresion
+
+* GreedyNMS link : https://arxiv.org/abs/1705.02950
+
+* explain link : https://dyndy.tistory.com/275
+

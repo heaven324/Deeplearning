@@ -45,7 +45,7 @@ class Evaluator(metaclass=ABCMeta):
         pass
 
 class RecallEvaluator(Evaluator):
-    """ Evaluator with Recall metric."""
+    """ Evaluator with Recall metric."""  # 위치를 찾고 올바르게 분류한 오브젝트 수 / 전체 오브젝트 수  
 
     @property
     def worst_score(self):
@@ -59,13 +59,13 @@ class RecallEvaluator(Evaluator):
 
     def score(self, y_true, y_pred, **kwargs):
         """Compute Recall for a given predicted bboxes"""
-        nms_flag = kwargs.pop('nms_flag', True)
-        if nms_flag:
-            bboxes = predict_nms_boxes(y_pred)
+        nms_flag = kwargs.pop('nms_flag', True) # pop(키, 기본값) dict함수, 키 없을 시 기본값 반환
+        if nms_flag:                            # nms_flag : Bool
+            bboxes = predict_nms_boxes(y_pred)  # from learning.utils
         else:
-            bboxes = convert_boxes(y_pred)
-        gt_bboxes = convert_boxes(y_true)
-        score = cal_recall(gt_bboxes, bboxes)
+            bboxes = convert_boxes(y_pred)      # from learning.utils
+        gt_bboxes = convert_boxes(y_true)       # from learning.utils
+        score = cal_recall(gt_bboxes, bboxes)   # from learning.utils
         return score
 
     def is_better(self, curr, best, **kwargs):

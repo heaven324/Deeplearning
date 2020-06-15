@@ -47,19 +47,30 @@ def plot_learning_curve(exp_idx, step_losses, step_scores, eval_scores=None,
 
 
 def nms(boxes, conf_thres=0.2, iou_thres=0.5):
-    x1 = boxes[..., 0]
+    '''
+    params : x1, y1, x2, y2, scores는 모두 1차원 배열인가? 지금까지는 1차원 배열이라 생각됨
+    '''
+    x1 = boxes[..., 0]             # 각 좌표값들
     y1 = boxes[..., 1]
     x2 = boxes[..., 2]
     y2 = boxes[..., 3]
-    areas = (x2 - x1) * (y2 - y1)
-    scores = boxes[..., 4]
+    areas = (x2 - x1) * (y2 - y1)  # 각 bbox 넓이 계산
+    scores = boxes[..., 4]         # conf score(?)
 
     keep = []
-    order = scores.argsort()[::-1]
+    order = scores.argsort()[::-1] # scores에서 가장 큰 값부터 인덱스를 반환
 
     while order.size > 0:
         i = order[0]
-        keep.append(i)
+        keep.append(i)                         # 현재 스코어가 가장 높은 인덱스 keep
+        '''
+        밑의 코드 해석
+        xy좌표계에서 1사분면에 box 두개가 있다고 가정해보면 각 박스에서 x1 < x2, y1 < y2인 상태
+        여기서 intersection 부분을 찾아야 하기 때문에 두 박스의 x1좌표중 큰 값을 xx1 y1도 마찬가지
+        x2좌표중 작은 값을 xx2 y2도 마찬가지로 해서 박스를 그리면 intersection이 나옴
+
+        그렇게 구한 intersection이 겹치는 부분이 없을 경우를 대비해서 w, h에 0.0의 최소값을 적용
+        '''
         xx1 = np.maximum(x1[i], x1[order[1:]])
         yy1 = np.maximum(y1[i], y1[order[1:]])
         xx2 = np.minimum(x2[i], x2[order[1:]])
@@ -68,12 +79,14 @@ def nms(boxes, conf_thres=0.2, iou_thres=0.5):
         w = np.maximum(0.0, xx2 - xx1)
         h = np.maximum(0.0, yy2 - yy1)
         inter = w * h
-        ovr = inter / (areas[i] + areas[order[1:]] - inter)
+        ovr = inter / (areas[i] + areas[order[1:]] - inter) # IOU계산    * 박스 개수가 원래보다 하나 줄어든다(가장 큰 박스를 비교대상자로 써서)
 
-        inds = np.where(ovr <= iou_thres)[0]
-        order = order[inds + 1]
+        inds = np.where(ovr <= iou_thres)[0]                # 비교한 박스들 중 많이 안겹친 박스(0.5 이하)들의 인덱스 추출, [0]의 의미는 껍데기 벗기기
+                                                            # 여기서 inds들은 ovr계산할때 한칸씩 앞으로 땡겨졌음
+        order = order[inds + 1]                             # + 1은 한칸씩 땡겨진 인덱스를 order에 맞추기 위함
+                                                            # 위 식의 결과로 많이 안겹친 박스들 중 스코어 내림차순으로 order가 만들어져서 다음 루프에 들어감
 
-    nms_box = []
+    nms_box = []                                            #여기부터 할 차례
     for idx in range(len(boxes)):
         if idx in keep and boxes[idx, 4] > conf_thres:
             nms_box.append(boxes[idx])
@@ -97,13 +110,13 @@ def convert_boxes(input_y):
 def predict_nms_boxes(input_y, conf_thres=0.2, iou_thres=0.5):
     '''
     evauatiors.py에서 쓰이는 경우
-    :param input_y: np.ndarray, shape: (N, 5 + num_classes).
+    :param input_y: np.ndarray, shape: (N, 5 + num_classes).   뭔가 차원수가 안맞는데 ? 
     '''
     is_batch = len(input_y.shape) == 5                                     # is_batch : Bool
     if not is_batch:                                                       # input_y가 5차원이 아니라면(그럼 2차원이라면?)
          input_y = np.expand_dims(input_y, 0)                              # 차원을 하나 늘린다(axis = 0) : 3차원
     boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1])) # 형태를 reshape
-    nms_boxes = []                                                         # nms에 대해서 더 알아보자
+    nms_boxes = []                                                         # 
     for box in boxes:
         nms_box = nms(box, conf_thres, iou_thres)
         nms_boxes.append(nms_box)

@@ -61,11 +61,11 @@ class RecallEvaluator(Evaluator):
         """Compute Recall for a given predicted bboxes"""
         nms_flag = kwargs.pop('nms_flag', True) # pop(키, 기본값) dict함수, 키 없을 시 기본값 반환
         if nms_flag:                            # nms_flag : Bool
-            bboxes = predict_nms_boxes(y_pred)  # from learning.utils
+            bboxes = predict_nms_boxes(y_pred)  # from learning.utils, y_pred shape: (N, g_H, g_W, anchors, 5 + num_classes)
         else:
             bboxes = convert_boxes(y_pred)      # from learning.utils
-        gt_bboxes = convert_boxes(y_true)       # from learning.utils
-        score = cal_recall(gt_bboxes, bboxes)   # from learning.utils
+        gt_bboxes = convert_boxes(y_true)       # from learning.utils, y_true shape: (N, g_H, g_W, anchors, 5 + num_classes)
+        score = cal_recall(gt_bboxes, bboxes)   # from learning.utils  여기부터 할 차례
         return score
 
     def is_better(self, curr, best, **kwargs):

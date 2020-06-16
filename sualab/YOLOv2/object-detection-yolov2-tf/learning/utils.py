@@ -48,7 +48,7 @@ def plot_learning_curve(exp_idx, step_losses, step_scores, eval_scores=None,
 
 def nms(boxes, conf_thres=0.2, iou_thres=0.5):
     '''
-    params : x1, y1, x2, y2, scores는 모두 1차원 배열인가? 지금까지는 1차원 배열이라 생각됨
+    params : x1, y1, x2, y2, scores shape: (box개수, )
     '''
     x1 = boxes[..., 0]             # 각 좌표값들
     y1 = boxes[..., 1]
@@ -86,44 +86,46 @@ def nms(boxes, conf_thres=0.2, iou_thres=0.5):
         order = order[inds + 1]                             # + 1은 한칸씩 땡겨진 인덱스를 order에 맞추기 위함
                                                             # 위 식의 결과로 많이 안겹친 박스들 중 스코어 내림차순으로 order가 만들어져서 다음 루프에 들어감
 
-    nms_box = []                                            #여기부터 할 차례
-    for idx in range(len(boxes)):
-        if idx in keep and boxes[idx, 4] > conf_thres:
+    nms_box = []
+    for idx in range(len(boxes)):                      # 모든 box들의 인덱스 순환
+        if idx in keep and boxes[idx, 4] > conf_thres: # while문으로 keep한 것들을 conf임계값으로 한번 더 걸러 남은 것들 box정보 저장
             nms_box.append(boxes[idx])
         else:
-            nms_box.append(np.zeros(boxes.shape[-1]))
+            nms_box.append(np.zeros(boxes.shape[-1]))  # 걸러진 box들은 0으로채워진 (5 + num_classes, )모양으로 추가
     boxes = np.array(nms_box)
-    return boxes
+    return boxes   # boxs: ndarray, shape: (box개수, 5 + num_classes) shape의 변화가 없음
 
 
 def convert_boxes(input_y):
-    is_batch = len(input_y.shape) == 5
-    if not is_batch:
-        input_y = np.expand_dims(input_y, 0)
-    boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1]))
+    '''
+     input_y shape: 배치일 경우 (N, g_H, g_W, anchors, 5 + num_classes), 아닐경우 4차원
+    '''
+    is_batch = len(input_y.shape) == 5                                     # is_batch : Bool
+    if not is_batch:                                                       # input_y가 5차원이 아니라면(4차원이라면)
+        input_y = np.expand_dims(input_y, 0)                               # 차원을 하나 늘린다(axis = 0) : 5차원
+    boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1])) # boxs : (N, box수, 5 + num_classes)
     if is_batch:
         return np.array(boxes)
     else:
-        return boxes[0]
+        return boxes[0]                                                    # 껍데기 벗기기
 
 
 def predict_nms_boxes(input_y, conf_thres=0.2, iou_thres=0.5):
     '''
-    evauatiors.py에서 쓰이는 경우
-    :param input_y: np.ndarray, shape: (N, 5 + num_classes).   뭔가 차원수가 안맞는데 ? 
+     input_y shape: 배치일 경우 (N, g_H, g_W, anchors, 5 + num_classes), 아닐경우 4차원
     '''
     is_batch = len(input_y.shape) == 5                                     # is_batch : Bool
-    if not is_batch:                                                       # input_y가 5차원이 아니라면(그럼 2차원이라면?)
-         input_y = np.expand_dims(input_y, 0)                              # 차원을 하나 늘린다(axis = 0) : 3차원
-    boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1])) # 형태를 reshape
-    nms_boxes = []                                                         # 
-    for box in boxes:
-        nms_box = nms(box, conf_thres, iou_thres)
-        nms_boxes.append(nms_box)
+    if not is_batch:                                                       # input_y가 5차원이 아니라면(4차원이라면)
+         input_y = np.expand_dims(input_y, 0)                              # 차원을 하나 늘린다(axis = 0) : 5차원
+    boxes = np.reshape(input_y, (input_y.shape[0], -1, input_y.shape[-1])) # boxs : (N, box수, 5 + num_classes)
+    nms_boxes = []
+    for box in boxes:                                                      # box : (box개수, 5 + num_classes)
+        nms_box = nms(box, conf_thres, iou_thres)                          # nms_box: ndarray, shape: (box개수, 5 + num_classes)
+        nms_boxes.append(nms_box)                                          # nms_boxs: list, shape: (batch수, box개수, 5 + num_classes)
     if is_batch:
         return np.array(nms_boxes)
     else:
-        return nms_boxes[0]
+        return nms_boxes[0]                                                # 껍데기 벗기기
 
 
 def cal_recall(gt_bboxes, bboxes, iou_thres=0.5):

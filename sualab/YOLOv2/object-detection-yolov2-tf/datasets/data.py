@@ -62,8 +62,8 @@ def read_data(data_dir, image_size, pixels_per_grid=32, no_label=False):
                 anchor_boxes = np.array(anchors) / np.array([ow, oh])
                 best_anchor = get_best_anchor(
                     anchor_boxes, [x_max - x_min, y_max - y_min])          # 5개의 anchor중 iou가 가장 높은 anchor의 인덱스를 가져옴
-                cx = int(np.floor(0.5 * (x_min + x_max) * grid_w))
-                cy = int(np.floor(0.5 * (y_min + y_max) * grid_h))
+                cx = int(np.floor(0.5 * (x_min + x_max) * grid_w))         # x좌표 중앙지점(그리드)
+                cy = int(np.floor(0.5 * (y_min + y_max) * grid_h))         # y좌표 중앙지점(그리드)
                 label[cy, cx, best_anchor, 0:4] = [x_min, y_min, x_max, y_max]   # 검출할 객체의 센터가 위치한 그리드 자리에 bbox정보 저장
                 label[cy, cx, best_anchor, 4] = 1.0                              # 검출할 객체의 센터가 위치한 그리드 자리에 검출할 책임을 저장  ?(confidence_score?)
                 label[cy, cx, best_anchor, 5 + int(c_idx)] = 1.0                 # 검출할 객체의 센터가 위치한 그리드 자리에 class의 one_hot label 저장

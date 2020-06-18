@@ -65,8 +65,8 @@ class RecallEvaluator(Evaluator):
         else:
             bboxes = convert_boxes(y_pred)      # from learning.utils
         gt_bboxes = convert_boxes(y_true)       # from learning.utils, y_true shape: (N, g_H, g_W, anchors, 5 + num_classes)
-        score = cal_recall(gt_bboxes, bboxes)   # from learning.utils  여기부터 할 차례
-        return score
+        score = cal_recall(gt_bboxes, bboxes)   # from learning.utils
+        return score                            # score : float
 
     def is_better(self, curr, best, **kwargs):
         """
@@ -76,9 +76,9 @@ class RecallEvaluator(Evaluator):
             - score_threshold: float, relative threshold for measuring the new optimum,
                                to only focus on significant changes.
         """
-        score_threshold = kwargs.pop('score_threshold', 1e-4)
-        relative_eps = 1.0 + score_threshold
-        return curr > best * relative_eps
+        score_threshold = kwargs.pop('score_threshold', 1e-4) # 0.0001
+        relative_eps = 1.0 + score_threshold                  # 1.0001
+        return curr > best * relative_eps                     # bool값을 return
 
 
 class IoUEvaluator(Evaluator):

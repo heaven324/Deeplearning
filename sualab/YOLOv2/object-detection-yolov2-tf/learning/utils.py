@@ -88,7 +88,7 @@ def nms(boxes, conf_thres=0.2, iou_thres=0.5):
 
     nms_box = []
     for idx in range(len(boxes)):                      # 모든 box들의 인덱스 순환
-        if idx in keep and boxes[idx, 4] > conf_thres: # while문으로 keep한 것들을 conf임계값으로 한번 더 걸러 남은 것들 box정보 저장
+        if idx in keep and boxes[idx, 4] > conf_thres: # while문으로 keep한 것들을 conf문턱값으로 한번 더 걸러 남은 것들 box정보 저장
             nms_box.append(boxes[idx])
         else:
             nms_box.append(np.zeros(boxes.shape[-1]))  # 걸러진 box들은 0으로채워진 (5 + num_classes, )모양으로 추가
@@ -129,21 +129,25 @@ def predict_nms_boxes(input_y, conf_thres=0.2, iou_thres=0.5):
 
 
 def cal_recall(gt_bboxes, bboxes, iou_thres=0.5):
-    p = 0
-    tp = 0
-    for idx, (gt, bbox) in enumerate(zip(gt_bboxes, bboxes)):
-        gt = gt[np.nonzero(np.any(gt > 0, axis=1))]
-        bbox = bbox[np.nonzero(np.any(bbox > 0, axis=1))]
-        p += len(gt)
+    '''
+    gt_bboxs shape: (N, 0포함 true_box개수, 5 + num_classes) : labeling된 박스들
+    bboxes shape: (N, 0포함 pred_box개수, 5 + num_classes) : pred되어 만들어진 박스들
+    '''
+    p = 0   # 전체 오브젝트 수
+    tp = 0  # 위치를 찾고 올바르게 분류한 오브젝트 수
+    for idx, (gt, bbox) in enumerate(zip(gt_bboxes, bboxes)): # gt, bbox: shape: (각 box개수, 5 + num_classes), 한 이미지씩을 의미하는 for문
+        gt = gt[np.nonzero(np.any(gt > 0, axis=1))]           # 실제 데이터가 있는 박스들만 추출
+        bbox = bbox[np.nonzero(np.any(bbox > 0, axis=1))]     # 같은 방식
+        p += len(gt)                                          # 한 이미지에서의 true박스(오브젝트) 개수 추가
         if bbox.size == 0:
             continue
-        iou = _cal_overlap(gt, bbox)
-        predicted_class = np.argmax(bbox[...,5:], axis=-1)
-        for g, area in zip(gt, iou):
-            gt_c = np.argmax(g[5:])
-            idx = np.argmax(area)
-            if np.max(area) > iou_thres and predicted_class[idx] == gt_c:
-                tp += 1
+        iou = _cal_overlap(gt, bbox)                          # iou shape : (true_box개수, pred_box개수)
+        predicted_class = np.argmax(bbox[...,5:], axis=-1)    # 각 pred_box별 예측된 클래스 배열 shape: (pred_box개수, )
+        for g, area in zip(gt, iou):                                      # 한 true박스씩을 의미하는 for문
+            gt_c = np.argmax(g[5:])                                       # 현 true박스 정답 클래스의 index
+            idx = np.argmax(area)                                         # 현 true박스와 가장 높은 iou를 가진 pred박스의 index
+            if np.max(area) > iou_thres and predicted_class[idx] == gt_c: # iou문턱값보다 크고 예측된 클래스가 정답이라면
+                tp += 1                                                   # 위치를 찾고 올바르게 분류한 오브젝트 1개 추가
     return tp / p
 
 def cal_F1(gt_bboxes, bboxes, iou_thres=0.5):
@@ -172,14 +176,18 @@ def cal_F1(gt_bboxes, bboxes, iou_thres=0.5):
     return f1
 
 def _cal_overlap(a, b):
-    area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
-
+    '''
+    a : gt shape : (0이상 box개수, 5 + num_classes)   : labeling
+    b : bbox shape : (0이상 box개수, 5 + num_classes) : predict
+    '''
+    area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])              # pred된 박스들의 면적 계산
+                                                                  # 아래 계산에서 expand_dims를 하는 이유는 broadcasting을 사용하기 위함
     iw = np.minimum(np.expand_dims(a[:, 2], axis=1), b[:, 2]) - \
         np.maximum(np.expand_dims(a[:, 0], axis=1), b[:, 0])
     ih = np.minimum(np.expand_dims(a[:, 3], axis=1), b[:, 3]) - \
         np.maximum(np.expand_dims(a[:, 1], axis=1), b[:, 1])
 
-    iw = np.maximum(iw, 0)
+    iw = np.maximum(iw, 0)                                        # 길이에 -값은 올 수 없기 때문
     ih = np.maximum(ih, 0)
     intersection = iw * ih
 
@@ -188,7 +196,7 @@ def _cal_overlap(a, b):
 
     ua = np.maximum(ua, np.finfo(float).eps)
 
-    return intersection / ua
+    return intersection / ua # shape: (a.shape[0], b.shape[0])
 
 def draw_pred_boxes(image, pred_boxes, class_map, text=True, score=False):
     im_h, im_w = image.shape[:2]

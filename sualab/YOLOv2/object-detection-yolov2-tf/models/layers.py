@@ -70,10 +70,11 @@ def conv_layer(x, side_l, stride, out_depth, padding='SAME', use_bias=True, **kw
         - weight_stddev: float, standard deviation of Normal distribution for weights.
         - biases_value: float, initial value for biases.
     :return: tf.Tensor.
+    현재 모델에서는 use_bias를 False로 놓고 쓴다
     """
     weights_stddev = kwargs.pop('weights_stddev', 0.01)
-    in_depth = int(x.get_shape()[-1])
-    filters = weight_variable([side_l, side_l, in_depth, out_depth], stddev=weights_stddev)
+    in_depth = int(x.get_shape()[-1])                                                       # input Channel
+    filters = weight_variable([side_l, side_l, in_depth, out_depth], stddev=weights_stddev) # conv2d weight
     if use_bias:
         biases_value = kwargs.pop('biases_value', 0.1)
         biases = bias_variable([out_depth], value=biases_value)

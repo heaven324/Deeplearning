@@ -25,7 +25,9 @@
 ## 1. 논문 정리
  * link : https://github.com/hoya012/deep_learning_object_detection
 
+## 2. YOLOv2
 
+* link : https://arxiv.org/pdf/1612.08242.pdf
 
 
 

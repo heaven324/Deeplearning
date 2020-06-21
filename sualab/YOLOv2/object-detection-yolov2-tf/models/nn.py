@@ -14,10 +14,10 @@ class DetectNet(metaclass=ABCMeta):
         :param input_shape: tuple, shape (H, W, C)
         :param num_classes: int, total number of classes
         """
-        self.X = tf.placeholder(tf.float32, [None] + input_shape)
+        self.X = tf.placeholder(tf.float32, [None] + input_shape) # 배치를 포함한 input 공간 생성
         self.is_train = tf.placeholder(tf.bool)
-        self.num_classes = num_classes
-        self.d = self._build_model(**kwargs)
+        self.num_classes = num_classes                            # 모델이 감지해야할 class 개수
+        self.d = self._build_model(**kwargs)                      # d : dict
         self.pred = self.d['pred']
         self.loss = self._build_loss(**kwargs)
 
@@ -48,37 +48,37 @@ class DetectNet(metaclass=ABCMeta):
         :return _y_pred: np.ndarray, shape: shape of self.pred
         """
 
-        batch_size = kwargs.pop('batch_size', 16)
+        batch_size = kwargs.pop('batch_size', 16) # 배치 크기(기본 16)
 
-        num_classes = self.num_classes
-        pred_size = dataset.num_examples
-        num_steps = pred_size // batch_size
-        flag = int(bool(pred_size % batch_size))
+        num_classes = self.num_classes            # 모델이 감지해야할 class 개수
+        pred_size = dataset.num_examples          # 주어진 dataset의 이미지 개수
+        num_steps = pred_size // batch_size       # dataset을 한바퀴 도는데 걸리는 for문의 step
+        flag = int(bool(pred_size % batch_size))  # 나누어 떨어진다면 False, else True
         if verbose:
             print('Running prediction loop...')
 
         # Start prediction loop
-        _y_pred = []
+        _y_pred = []                                              # 전체 이미지의 pred결과 모음
         start_time = time.time()
         for i in range(num_steps + flag):
-            if i == num_steps and flag:
-                _batch_size = pred_size - num_steps * batch_size
+            if i == num_steps and flag:                           # batch_size와 크기가 다른 마지막 루프가 오면
+                _batch_size = pred_size - num_steps * batch_size  # batch_size크기 조정
             else:
-                _batch_size = batch_size
-            X, _ = dataset.next_batch(_batch_size, shuffle=False)
+                _batch_size = batch_size                          # 그게 아니라 보통 루프이면 그대로
+            X, _ = dataset.next_batch(_batch_size, shuffle=False) # pred에 사용 될 이미지 할당
 
             # Compute predictions
             # (N, grid_h, grid_w, 5 + num_classes)
             y_pred = sess.run(self.pred_y, feed_dict={
-                              self.X: X, self.is_train: False})
+                              self.X: X, self.is_train: False})   # predict 수행   ?? :정확한 sess이 어떻게 수행되는지 build부분을 확인할 필요가 있음
 
-            _y_pred.append(y_pred)
+            _y_pred.append(y_pred)                                # pred된 결과 모음
 
-        if verbose:
+        if verbose:                                               # 출력 여부
             print('Total prediction time(sec): {}'.format(
                 time.time() - start_time))
 
-        _y_pred = np.concatenate(_y_pred, axis=0)
+        _y_pred = np.concatenate(_y_pred, axis=0)                 # 배치 단위로 잘려있는(axis = 0) 결과값 연결하기
         return _y_pred
 
 

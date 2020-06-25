@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from datasets import data as dataset
-from models.nn import YOLO as ConvNet
+from models.nn import YOLO as 
 from learning.optimizers import MomentumOptimizer as Optimizer
 # from learning.optimizers import AdamOptimizer as Optimizer
 from learning.evaluators import RecallEvaluator as Evaluator
@@ -44,7 +44,7 @@ graph = tf.get_default_graph()
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 
-model = ConvNet([IM_SIZE[0], IM_SIZE[1], 3], NUM_CLASSES, anchors, grid_size=(IM_SIZE[0]//32, IM_SIZE[1]//32))
+model = ConvNet([IM_SIZE[0], IM_SIZE[1], 3], NUM_CLASSES, anchors, grid_size=(IM_SIZE[0]//32, IM_SIZE[1]//32)) # grid_size는 **kwargs로 제공(모델 클래스에서 따로 계산 하던데??)
 
 evaluator = Evaluator()
 optimizer = Optimizer(model, train_set, evaluator, val_set=val_set, **hp_d)

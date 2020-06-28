@@ -70,7 +70,7 @@ class DetectNet(metaclass=ABCMeta):
             # Compute predictions
             # (N, grid_h, grid_w, 5 + num_classes)
             y_pred = sess.run(self.pred_y, feed_dict={
-                              self.X: X, self.is_train: False})   # predict 수행   ?? :정확한 sess이 어떻게 수행되는지 build부분을 확인할 필요가 있음
+                              self.X: X, self.is_train: False})   # predict 수행 (from nn.py line 395)
 
             _y_pred.append(y_pred)                                # pred된 결과 모음
 
@@ -101,6 +101,7 @@ class YOLO(DetectNet):
                 -image_mean: np.ndarray, mean image for each input channel, shape: (C,).
         :return d: dict, containing outputs on each layer.
 
+        * Darknet(layer1 ~ layer19)
         layer1 [conv1  - batch_norm1  - leaky_relu1  - pool1 ] ->
         layer2 [conv2  - batch_norm2  - leaky_relu2  - pool2 ] ->
         layer3 [conv3  - batch_norm3  - leaky_relu3          ] ->
@@ -120,12 +121,14 @@ class YOLO(DetectNet):
         layer17[conv17 - batch_norm17 - leaky_relu17         ] ->
         layer18[conv18 - batch_norm18 - leaky_relu18         ] ->
         layer19[conv19 - batch_norm19 - leaky_relu19         ] ->
+
+        * YOLO Detector(layer20 ~ layer22)
         layer20[conv20 - batch_norm20 - leaky_relu20         ] ->
-        layer[         ] ->
-        layer[         ] ->
-        layer[         ] ->
 
+        layer21[skip_connection(leaky_relu13) - skip_batch - skip_leaky_relu - 
+                skip_space_to_depth_x2 - concat21(skip_space_to_depth_x2, leaky_relu20)] ->
 
+        layer22[conv22 - batch_norm22 - leaky_relu22         ] -> logit(conv) -> pred(reshape)
         """
 
         d = dict()                             # return dict
@@ -322,6 +325,7 @@ class YOLO(DetectNet):
         print('layer20.shape', d['leaky_relu20'].get_shape().as_list())
 
         # concatenate layer20 and layer 13 using space to depth
+        # skip_connection - skip_batch - skip_leaky_relu - skip_space_to_depth_x2 - concat21
         with tf.variable_scope('layer21'):
             d['skip_connection'] = conv_layer(d['leaky_relu13'], 1, 1, 64,
                                               padding='SAME', use_bias=False, weights_stddev=0.01) # in shape :(B, 26, 26, 512), out shape :(B, 26, 26, 64)
@@ -330,25 +334,26 @@ class YOLO(DetectNet):
             d['skip_leaky_relu'] = tf.nn.leaky_relu(d['skip_batch'], alpha=0.1)
             d['skip_space_to_depth_x2'] = tf.space_to_depth(
                 d['skip_leaky_relu'], block_size=2)                                                # 풀링 비슷한 작업인데 4개의 이미지로 쪼개서 채널 만듦
+                                                                                                   # in shape :(B, 26, 26, 64), out shape :(B, 13, 13, 256)
             d['concat21'] = tf.concat(
-                [d['skip_space_to_depth_x2'], d['leaky_relu20']], axis=-1)
+                [d['skip_space_to_depth_x2'], d['leaky_relu20']], axis=-1)                         # out shape :(B, 13, 13, 256+1024)
         # (13, 13, 1024) --> (13, 13, 256+1024)
         print('layer21.shape', d['concat21'].get_shape().as_list())
 
         #conv22 - batch_norm22 - leaky_relu22
         with tf.variable_scope('layer22'):
             d['conv22'] = conv_layer(d['concat21'], 3, 1, 1024,
-                                     padding='SAME', use_bias=False, weights_stddev=0.01)
-            d['batch_norm22'] = batchNormalization(d['conv22'], is_train)
+                                     padding='SAME', use_bias=False, weights_stddev=0.01) # # in shape :(B, 13, 13, 1280), out shape :(B, 13, 13, 1024)
+            d['batch_norm22'] = batchNormalization(d['conv22'], is_train)                 # input modify for activation layer
             d['leaky_relu22'] = tf.nn.leaky_relu(d['batch_norm22'], alpha=0.1)
         # (13, 13, 1280) --> (13, 13, 1024)
         print('layer22.shape', d['leaky_relu22'].get_shape().as_list())
 
-        output_channel = self.num_anchors * (5 + self.num_classes)
+        output_channel = self.num_anchors * (5 + self.num_classes)                                    # output_channel = 5 * (5 + 1) = 30
         d['logit'] = conv_layer(d['leaky_relu22'], 1, 1, output_channel,
-                                padding='SAME', use_bias=True, weights_stddev=0.01, biases_value=0.1)
+                                padding='SAME', use_bias=True, weights_stddev=0.01, biases_value=0.1) # in shape :(B, 13, 13, 1024), out shape :(B, 13, 13, 30)
         d['pred'] = tf.reshape(
-            d['logit'], (-1, self.grid_size[0], self.grid_size[1], self.num_anchors, 5 + self.num_classes))
+            d['logit'], (-1, self.grid_size[0], self.grid_size[1], self.num_anchors, 5 + self.num_classes)) # out shape :(B, 13, 13, 5, 6)
         print('pred.shape', d['pred'].get_shape().as_list())
         # (13, 13, 1024) --> (13, 13, num_anchors , (5 + num_classes))
 
@@ -362,31 +367,34 @@ class YOLO(DetectNet):
         :return tf.Tensor.
         """
 
-        loss_weights = kwargs.pop('loss_weights', [5, 5, 5, 0.5, 1.0])
+        loss_weights = kwargs.pop('loss_weights', [5, 5, 5, 0.5, 1.0]) # train.py에서 제공된 **kwargs변수가 없음, loss_weights = [5, 5, 5, 0.5, 1.0]
         # DEBUG
         # loss_weights = kwargs.pop('loss_weights', [1.0, 1.0, 1.0, 1.0, 1.0])
-        grid_h, grid_w = self.grid_size
-        num_classes = self.num_classes
-        anchors = self.anchors
+        grid_h, grid_w = self.grid_size                             # grid_size = [13, 13]
+        num_classes = self.num_classes                              # num_classes = 1
+        anchors = self.anchors                                      # anchors shape : (5, 2)
         grid_wh = np.reshape([grid_w, grid_h], [
-                             1, 1, 1, 1, 2]).astype(np.float32)
+                             1, 1, 1, 1, 2]).astype(np.float32)     # grud_wh = [[[[[13., 13.]]]]]
         cxcy = np.transpose([np.tile(np.arange(grid_w), grid_h),
-                             np.repeat(np.arange(grid_h), grid_w)])
-        cxcy = np.reshape(cxcy, (1, grid_h, grid_w, 1, 2))
+                             np.repeat(np.arange(grid_h), grid_w)]) # 그리드의 중심좌표판 생성 cxcy shape : (169, 2)
+        cxcy = np.reshape(cxcy, (1, grid_h, grid_w, 1, 2))          # 형상 변경 cxcy shape : (1, 13, 13, 1, 2)
 
-        txty, twth = self.pred[..., 0:2], self.pred[..., 2:4]
-        confidence = tf.sigmoid(self.pred[..., 4:5])
+        txty, twth = self.pred[..., 0:2], self.pred[..., 2:4]                                   # box 크기 정보 추출 shape :(B, 13, 13, 5, 2)
+        confidence = tf.sigmoid(self.pred[..., 4:5])                                            # confi정보 추출 shape :(B, 13, 13, 5, 1)
         class_probs = tf.nn.softmax(
-            self.pred[..., 5:], axis=-1) if num_classes > 1 else tf.sigmoid(self.pred[..., 5:])
-        bxby = tf.sigmoid(txty) + cxcy
-        pwph = np.reshape(anchors, (1, 1, 1, self.num_anchors, 2)) / 32
-        bwbh = tf.exp(twth) * pwph
+            self.pred[..., 5:], axis=-1) if num_classes > 1 else tf.sigmoid(self.pred[..., 5:]) # 여기서는 sigmoid사용 shape :(B, 13, 13, 5, 1)
+        bxby = tf.sigmoid(txty) + cxcy                                                          # pred한 정확한 greed상의 bbox중심좌표 위치 생성
+                                                                                                # 전체 greed에서의 정확한 좌표값이 pred되는게 아니라 
+                                                                                                # 1greed안에서의 상대 위치값이 pred되게 만들어서 인듯
+        pwph = np.reshape(anchors, (1, 1, 1, self.num_anchors, 2)) / 32                         # anchors를 그리드상의 길이정보로 바꾸고 형태를 reshape
+        bwbh = tf.exp(twth) * pwph                                                              # pred한 정확한 greed상의 bbox크기 정보 생성
 
         # calculating for prediction
-        nxny, nwnh = bxby / grid_wh, bwbh / grid_wh
-        nx1ny1, nx2ny2 = nxny - 0.5 * nwnh, nxny + 0.5 * nwnh
+        nxny, nwnh = bxby / grid_wh, bwbh / grid_wh           # 1x1이미지 형태안의 bbox(위치, 크기 정보)모습으로 정규화,  shape :(B, 13, 13, 5, 2)
+        nx1ny1, nx2ny2 = nxny - 0.5 * nwnh, nxny + 0.5 * nwnh # bbox의 중심좌표와 길이를 이용 bbox의 각 꼭지점 좌표 획득, shape :(B, 13, 13, 5, 2)
         self.pred_y = tf.concat(
-            (nx1ny1, nx2ny2, confidence, class_probs), axis=-1)
+            (nx1ny1, nx2ny2, confidence, class_probs), axis=-1)   # build된 model의 pred결과를 해석한 정보들을 pred_y에 저장, shape :(B, 13, 13, 5, 6)
+                                                                  # valid set 을 pred하기 위해 필요해서 따로 pred_y에 저장(nn.py line 72)
 
         # calculating IoU for metric
         num_objects = tf.reduce_sum(self.y[..., 4:5], axis=[1, 2, 3, 4])

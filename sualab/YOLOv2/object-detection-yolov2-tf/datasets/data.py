@@ -49,7 +49,7 @@ def read_data(data_dir, image_size, pixels_per_grid=32, no_label=False):
         name = os.path.splitext(os.path.basename(im_path))[0]     # 이미지 이름과 같은 .anno파일(annotation)을 찾기 위함
         anno_path = os.path.join(anno_dir, '{}.anno'.format(name))
         anno = load_json(anno_path)
-        label = np.zeros((grid_h, grid_w, len(anchors), 5 + num_classes))   # label 기초 틀 
+        label = np.zeros((grid_h, grid_w, len(anchors), 5 + num_classes))   # label 기초 틀 shape : (13, 13, 5, 6)
         for c_idx, c_name in class_map.items():
             if c_name not in anno:
                 continue
@@ -65,9 +65,9 @@ def read_data(data_dir, image_size, pixels_per_grid=32, no_label=False):
                 cx = int(np.floor(0.5 * (x_min + x_max) * grid_w))         # x좌표 중앙지점(그리드)
                 cy = int(np.floor(0.5 * (y_min + y_max) * grid_h))         # y좌표 중앙지점(그리드)
                 label[cy, cx, best_anchor, 0:4] = [x_min, y_min, x_max, y_max]   # 검출할 객체의 센터가 위치한 그리드 자리에 bbox정보 저장
-                label[cy, cx, best_anchor, 4] = 1.0                              # 검출할 객체의 센터가 위치한 그리드 자리에 검출할 책임을 저장  ?(confidence_score?)
+                label[cy, cx, best_anchor, 4] = 1.0                              # 검출할 객체의 센터가 위치한 그리드 자리에 검출할 책임을 저장(resp_mask) 
                 label[cy, cx, best_anchor, 5 + int(c_idx)] = 1.0                 # 검출할 객체의 센터가 위치한 그리드 자리에 class의 one_hot label 저장
-        labels.append(label)
+        labels.append(label) # shape : (N, 13, 13, 5, 6)
         # 최종적으로 labels는 그리드 형식의 이미지 모양에 bbox, best_anchor, one_hot class label 정보 저장
 
     X_set = np.array(images, dtype=np.float32)

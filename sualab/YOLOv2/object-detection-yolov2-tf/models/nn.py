@@ -383,11 +383,11 @@ class YOLO(DetectNet):
         confidence = tf.sigmoid(self.pred[..., 4:5])                                            # confi정보 추출 shape :(B, 13, 13, 5, 1)
         class_probs = tf.nn.softmax(
             self.pred[..., 5:], axis=-1) if num_classes > 1 else tf.sigmoid(self.pred[..., 5:]) # 여기서는 sigmoid사용 shape :(B, 13, 13, 5, 1)
-        bxby = tf.sigmoid(txty) + cxcy                                                          # pred한 정확한 greed상의 bbox중심좌표 위치 생성
-                                                                                                # 전체 greed에서의 정확한 좌표값이 pred되는게 아니라 
-                                                                                                # 1greed안에서의 상대 위치값이 pred되게 만들어서 인듯
+        bxby = tf.sigmoid(txty) + cxcy                                                          # pred한 정확한 grid상의 bbox중심좌표 위치 생성
+                                                                                                # 전체 grid에서의 정확한 좌표값이 pred되는게 아니라 
+                                                                                                # 1grid안에서의 상대 위치값이 pred되게 만들어서 인듯
         pwph = np.reshape(anchors, (1, 1, 1, self.num_anchors, 2)) / 32                         # anchors를 그리드상의 길이정보로 바꾸고 형태를 reshape
-        bwbh = tf.exp(twth) * pwph                                                              # pred한 정확한 greed상의 bbox크기 정보 생성
+        bwbh = tf.exp(twth) * pwph                                                              # pred한 정확한 grid상의 bbox크기 정보 생성
 
         # calculating for prediction
         nxny, nwnh = bxby / grid_wh, bwbh / grid_wh           # 1x1이미지 형태안의 bbox(위치, 크기 정보)모습으로 정규화,  shape :(B, 13, 13, 5, 2)
@@ -397,31 +397,31 @@ class YOLO(DetectNet):
                                                                   # valid set 을 pred하기 위해 필요해서 따로 pred_y에 저장(nn.py line 72)
 
         # calculating IoU for metric
-        num_objects = tf.reduce_sum(self.y[..., 4:5], axis=[1, 2, 3, 4])
-        max_nx1ny1 = tf.maximum(self.y[..., 0:2], nx1ny1)
-        min_nx2ny2 = tf.minimum(self.y[..., 2:4], nx2ny2)
-        intersect_wh = tf.maximum(min_nx2ny2 - max_nx1ny1, 0.0)
-        intersect_area = tf.reduce_prod(intersect_wh, axis=-1)
+        num_objects = tf.reduce_sum(self.y[..., 4:5], axis=[1, 2, 3, 4]) # self.y = y_true(batch) shape : (B, 13, 13, 5, 6), num_objects shape : (B, )
+        max_nx1ny1 = tf.maximum(self.y[..., 0:2], nx1ny1)                # intersection을 구하기 위한 작업, max_nx1ny1 shape : (B, 13, 13, 5, 2)
+        min_nx2ny2 = tf.minimum(self.y[..., 2:4], nx2ny2)                # intersection을 구하기 위한 작업, min_nx2ny2 shape : (B, 13, 13, 5, 2)
+        intersect_wh = tf.maximum(min_nx2ny2 - max_nx1ny1, 0.0)          # intersection의 가로 세로 길이 , intersect_wh shape : (B, 13, 13, 5, 2)
+        intersect_area = tf.reduce_prod(intersect_wh, axis=-1)           # intersection의 가로 세로 길이의 곱, intersect_area shape : (B, 13, 13, 5)
         intersect_area = tf.where(
-            tf.equal(intersect_area, 0.0), tf.zeros_like(intersect_area), intersect_area)
+            tf.equal(intersect_area, 0.0), tf.zeros_like(intersect_area), intersect_area) # 결과가 같은데 왜하는거지 ??
         gt_box_area = tf.reduce_prod(
-            self.y[..., 2:4] - self.y[..., 0:2], axis=-1)
-        box_area = tf.reduce_prod(nx2ny2 - nx1ny1, axis=-1)
+            self.y[..., 2:4] - self.y[..., 0:2], axis=-1)                # True box area를 구함 gt_box_area shape : (B, 13, 13, 5)
+        box_area = tf.reduce_prod(nx2ny2 - nx1ny1, axis=-1)              # pred box area를 구함 box_area shape : (B, 13, 13 ,5)
         iou = tf.truediv(
-            intersect_area, (gt_box_area + box_area - intersect_area))
-        sum_iou = tf.reduce_sum(iou, axis=[1, 2, 3])
-        self.iou = tf.truediv(sum_iou, num_objects)
+            intersect_area, (gt_box_area + box_area - intersect_area))   # iou값 구하기(intersection / union) iou shape : (B, 13, 13 ,5)
+        sum_iou = tf.reduce_sum(iou, axis=[1, 2, 3])                     # 이미지별 object들의 iou의 합을 구합sum_iou shape : (B, )
+        self.iou = tf.truediv(sum_iou, num_objects)                      # sum_iou / num_objects, shape : (B, )
 
-        gt_bxby = 0.5 * (self.y[..., 0:2] + self.y[..., 2:4]) * grid_wh
-        gt_bwbh = (self.y[..., 2:4] - self.y[..., 0:2]) * grid_wh
+        gt_bxby = 0.5 * (self.y[..., 0:2] + self.y[..., 2:4]) * grid_wh  # True bbox의 grid상 중심좌표 얻dma(y에 좌표 0~1로 정규화 됨) shape :(B, 13, 13, 5, 2)
+        gt_bwbh = (self.y[..., 2:4] - self.y[..., 0:2]) * grid_wh        # True bbox의 grid상 가로 세로 길이를 얻어옴 shape :(B, 13, 13, 5, 2)
 
-        resp_mask = self.y[..., 4:5]
-        no_resp_mask = 1.0 - resp_mask
-        gt_confidence = resp_mask * tf.expand_dims(iou, axis=-1)
-        gt_class_probs = self.y[..., 5:]
+        resp_mask = self.y[..., 4:5]                                     # 검출할 책임 있음(1), 없음(0)으로 된 mask 배열 shape :(B, 13, 13, 5, 1)
+        no_resp_mask = 1.0 - resp_mask                                   # 검출할 책임 있음(0), 없음(1)으로 된 mask 배열 shape :(B, 13, 13, 5, 1)
+        gt_confidence = resp_mask * tf.expand_dims(iou, axis=-1)         # mask와 각 현 batch내의 bbox의 iou를 곱해 confidence score를 구함(sum_iou아님) 
+        gt_class_probs = self.y[..., 5:]                                 # gt_confidence, gt_class_probs shape : (B, 13, 13, 5, 1)
 
         loss_bxby = loss_weights[0] * resp_mask * \
-            tf.square(gt_bxby - bxby)
+            tf.square(gt_bxby - bxby)                          # 여기부터 할 차레
         loss_bwbh = loss_weights[1] * resp_mask * \
             tf.square(tf.sqrt(gt_bwbh) - tf.sqrt(bwbh))
         loss_resp_conf = loss_weights[2] * resp_mask * \

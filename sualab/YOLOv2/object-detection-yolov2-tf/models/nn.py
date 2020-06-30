@@ -412,7 +412,7 @@ class YOLO(DetectNet):
         sum_iou = tf.reduce_sum(iou, axis=[1, 2, 3])                     # 이미지별 object들의 iou의 합을 구합sum_iou shape : (B, )
         self.iou = tf.truediv(sum_iou, num_objects)                      # sum_iou / num_objects, shape : (B, )
 
-        gt_bxby = 0.5 * (self.y[..., 0:2] + self.y[..., 2:4]) * grid_wh  # True bbox의 grid상 중심좌표 얻dma(y에 좌표 0~1로 정규화 됨) shape :(B, 13, 13, 5, 2)
+        gt_bxby = 0.5 * (self.y[..., 0:2] + self.y[..., 2:4]) * grid_wh  # True bbox의 grid상 중심좌표 얻음(y에 좌표 0~1로 정규화 됨) shape :(B, 13, 13, 5, 2)
         gt_bwbh = (self.y[..., 2:4] - self.y[..., 0:2]) * grid_wh        # True bbox의 grid상 가로 세로 길이를 얻어옴 shape :(B, 13, 13, 5, 2)
 
         resp_mask = self.y[..., 4:5]                                     # 검출할 책임 있음(1), 없음(0)으로 된 mask 배열 shape :(B, 13, 13, 5, 1)
@@ -421,15 +421,15 @@ class YOLO(DetectNet):
         gt_class_probs = self.y[..., 5:]                                 # gt_confidence, gt_class_probs shape : (B, 13, 13, 5, 1)
 
         loss_bxby = loss_weights[0] * resp_mask * \
-            tf.square(gt_bxby - bxby)                          # 여기부터 할 차레
+            tf.square(gt_bxby - bxby)                          # bbox 중심 좌표에 관한 loss(가중치 5)            shape : (B, 13, 13, 5, 2)
         loss_bwbh = loss_weights[1] * resp_mask * \
-            tf.square(tf.sqrt(gt_bwbh) - tf.sqrt(bwbh))
+            tf.square(tf.sqrt(gt_bwbh) - tf.sqrt(bwbh))        # bbox 가로 세로 길이에 관한 loss(가중치 5)       shape : (B, 13, 13, 5, 2)
         loss_resp_conf = loss_weights[2] * resp_mask * \
-            tf.square(gt_confidence - confidence)
+            tf.square(gt_confidence - confidence)              # True object confidence에 관한 loss(가중치 5)    shape : (B, 13, 13, 5, 1)
         loss_no_resp_conf = loss_weights[3] * no_resp_mask * \
-            tf.square(gt_confidence - confidence)
+            tf.square(gt_confidence - confidence)              # False object confidence에 관한 loss(가중치 0.5) shape : (B, 13, 13, 5, 1)
         loss_class_probs = loss_weights[4] * resp_mask * \
-            tf.square(gt_class_probs - class_probs)
+            tf.square(gt_class_probs - class_probs)            # class_prob에 관한 loss(가중치 1)                shape : (B, 13, 13, 5, 1)
 
         merged_loss = tf.concat((
                                 loss_bxby,
@@ -438,11 +438,11 @@ class YOLO(DetectNet):
                                 loss_no_resp_conf,
                                 loss_class_probs
                                 ),
-                                axis=-1)
+                                axis=-1)                       # 모든 loss값 이어붙이기 shape : (B, 13, 13, 5, 7)
         #self.merged_loss = merged_loss
-        total_loss = tf.reduce_sum(merged_loss, axis=-1)
-        total_loss = tf.reduce_mean(total_loss)
-        return total_loss
+        total_loss = tf.reduce_sum(merged_loss, axis=-1)       # total_loss shape : (B, 13, 13, 5)
+        total_loss = tf.reduce_mean(total_loss)                # total_loss shape : ()
+        return total_loss                                      # 이미지별 total_loss를 반환하는 것이 아닌 배치별 total_loss를 반환
 
     # def interpret_output(self, sess, images, **kwargs):
     #     """

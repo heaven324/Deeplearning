@@ -19,17 +19,17 @@ class Optimizer(metaclass=ABCMeta):
 			- num_epochs: int, total number of epochs for training.
 			- init_learning_rate: float, initial learning rate.
 		"""
-		self.model = model
-		self.train_set = train_set
-		self.evaluator = evaluator
-		self.val_set = val_set
+		self.model = model         # model(YOLO) 클래스를 받아옴      from train.py line 47
+		self.train_set = train_set # Dataset(train용) 클래스를 받아옴 from train.py line 26
+		self.evaluator = evaluator # 성능평가를 위한 클래스를 받아옴  from train.py line 49
+		self.val_set = val_set     # Dataset(valid용) 클래스를 받아옴 from train.py line 25
 
 		# Training hyperparameters
-		self.batch_size = kwargs.pop('batch_size', 8)
-		self.num_epochs = kwargs.pop('num_epochs', 100)
-		self.init_learning_rate = kwargs.pop('init_learning_rate', 0.001)
+		self.batch_size = kwargs.pop('batch_size', 8)                     # {batch_size:2}            from train.py line 32
+		self.num_epochs = kwargs.pop('num_epochs', 100)                   # {num_epochs:50}           from train.py line 33
+		self.init_learning_rate = kwargs.pop('init_learning_rate', 0.001) # {init_learning_rate:1e-4} from train.py line 34
 		self.learning_rate_placeholder = tf.placeholder(tf.float32)
-		self.optimize = self._optimize_op()
+		self.optimize = self._optimize_op()                               # MomentumOptimizer로 지정  from train.py line 6
 
 		self._reset()
 
@@ -67,7 +67,7 @@ class Optimizer(metaclass=ABCMeta):
 		"""
 
 		# Sample a single batch
-		X, y_true = self.train_set.next_batch(self.batch_size, shuffle=True)
+		X, y_true = self.train_set.next_batch(self.batch_size, shuffle=True)  # 여기부터 할 차례
 		# Compute the loss and make update
 		_, loss, y_pred = \
 			sess.run([self.optimize, self.model.loss, self.model.pred_y],

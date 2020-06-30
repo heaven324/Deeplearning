@@ -2,7 +2,7 @@ import os
 import numpy as np
 import tensorflow as tf
 from datasets import data as dataset
-from models.nn import YOLO as 
+from models.nn import YOLO as ConvNet
 from learning.optimizers import MomentumOptimizer as Optimizer
 # from learning.optimizers import AdamOptimizer as Optimizer
 from learning.evaluators import RecallEvaluator as Evaluator

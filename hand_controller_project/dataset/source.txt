@@ -1,0 +1,4 @@
+dataset
+
+only_hand_white_back : https://www.kaggle.com/shyambhu/hands-and-palm-images-dataset
+

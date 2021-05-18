@@ -33,14 +33,14 @@ def read_data(data_dir, image_size, pixels_per_grid=32, no_label=False):
 
     for im_path in im_paths:
         # load image and resize image
-        im = imread(im_path)
-        im = np.array(im, dtype=np.float32)
-        im_origina_sizes = im.shape[:2]
-        im = resize(im, (image_size[1], image_size[0]))    # 이미지 크기를 통일(예 : 416 x 416), squash해서 shape의 변형이 있을 수 있는 방법
-        if len(im.shape) == 2:     # RGB채널이 아닌 흑백 이미지를 RGB채널 형식으로 통일
+        im = imread(im_path)                               # shape : (_, _, 3)
+        im = np.array(im, dtype=np.float32)                # shape : (_, _, 3)
+        im_origina_sizes = im.shape[:2]                    # im_origina_size = (_, _)
+        im = resize(im, (image_size[1], image_size[0]))    # 이미지 크기를 통일(예 : 416 x 416), squash 방법 im shape : (416, 416, 3)
+        if len(im.shape) == 2:                             # RGB채널이 아닌 흑백 이미지를 RGB채널 형식으로 통일
             im = np.expand_dims(im, 2)
             im = np.concatenate([im, im, im], -1)
-        images.append(im)
+        images.append(im)                                  # images shape : (N, 416, 416, 3)
 
         if no_label:
             labels.append(0)
@@ -70,8 +70,8 @@ def read_data(data_dir, image_size, pixels_per_grid=32, no_label=False):
         labels.append(label) # shape : (N, 13, 13, 5, 6)
         # 최종적으로 labels는 그리드 형식의 이미지 모양에 bbox, best_anchor, one_hot class label 정보 저장
 
-    X_set = np.array(images, dtype=np.float32)
-    y_set = np.array(labels, dtype=np.float32)
+    X_set = np.array(images, dtype=np.float32) # shape : (N, 416, 416, 3)
+    y_set = np.array(labels, dtype=np.float32) # shape : (N, 13, 13, 5, 6)
 
     return X_set, y_set
 
@@ -109,8 +109,8 @@ class DataSet(object):
     def __init__(self, images, labels=None):
         """
         Construct a new DataSet object.
-        :param images: np.ndarray, shape: (N, H, W, C)
-        :param labels: np.ndarray, shape: (N, g_H, g_W, anchors, 5 + num_classes).
+        :param images: np.ndarray, shape: (N, H, W, C)                             * (N, 416, 416, 3)
+        :param labels: np.ndarray, shape: (N, g_H, g_W, anchors, 5 + num_classes). * (n, 13, 13, 5, 6)
         """
         if labels is not None:     # 라벨이 존재한다면 이미지의 개수와 라벨의 개수가 맞는지 확인
             assert images.shape[0] == labels.shape[0],\
@@ -196,23 +196,23 @@ class DataSet(object):
             images_rest_part = self._images[indices_rest_part]                # 실제 이미지 지정(rest_part)
             images_new_part = self._images[indices_new_part]                  # 실제 이미지 지정(new_part)
             batch_images = np.concatenate(
-                (images_rest_part, images_new_part), axis=0)                  # rest_part and new_part 이어붙이기
+                (images_rest_part, images_new_part), axis=0)                  # rest_part and new_part 이어붙이기 shape : (B, 416, 416, 3)
             if self._labels is not None:                                      # 이미지에 맞는 라벨 처리에 관한 if문
                 labels_rest_part = self._labels[indices_rest_part]
                 labels_new_part = self._labels[indices_new_part]
                 batch_labels = np.concatenate(
-                    (labels_rest_part, labels_new_part), axis=0)
+                    (labels_rest_part, labels_new_part), axis=0)              # shape : (B, 13, 13, 5, 6)
             else:
                 batch_labels = None
         else:                                              # 다음 에폭으로 넘어가는게 아니라면
             self._index_in_epoch += batch_size             # start_index를 저장해 두었으니 end_index로 변경
             end_index = self._index_in_epoch
             indices = self._indices[start_index:end_index] # batch_size만큼 현재 순서의 indices추출
-            batch_images = self._images[indices]           # 그에 맞는 image지정
+            batch_images = self._images[indices]           # 그에 맞는 image지정, shape : (B, 416, 416, 3)
             if self._labels is not None:
-                batch_labels = self._labels[indices]       # 그에 맞는 label지정(True일 경우)
+                batch_labels = self._labels[indices]       # 그에 맞는 label지정(True일 경우), shape : (B, 13, 13, 5, 6)
             else:
                 batch_labels = None
 
-        return batch_images, batch_labels # 1. next epoch인 경우    code line 198, 203
-                                          # 2. current epoch인 경우 code line 211, 213
+        return batch_images, batch_labels # 1. next epoch인 경우    code line 198, 203        batch_images shape : (B, 416, 416, 3)
+                                          # 2. current epoch인 경우 code line 211, 213        batch_labels shape : (B, 13, 13, 5, 6)

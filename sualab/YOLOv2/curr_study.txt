@@ -1,2 +1,0 @@
-http://research.sualab.com/practice/2018/05/14/image-detection-deep-learning.html
-	러닝 모델: YOLOv2 부터

@@ -67,12 +67,12 @@ class Optimizer(metaclass=ABCMeta):
 		"""
 
 		# Sample a single batch
-		X, y_true = self.train_set.next_batch(self.batch_size, shuffle=True)  # 여기부터 할 차례
+		X, y_true = self.train_set.next_batch(self.batch_size, shuffle=True)  # from line 23, X, y_true shape : (2, 416, 416, 3), (2, 13, 13, 5, 6)
 		# Compute the loss and make update
 		_, loss, y_pred = \
 			sess.run([self.optimize, self.model.loss, self.model.pred_y],
 				feed_dict={self.model.X: X, self.model.y: y_true, self.model.is_train: True, self.learning_rate_placeholder: self.curr_learning_rate})
-		return loss, y_true, y_pred, X
+		return loss, y_true, y_pred, X # loss shape :(), y_true shape :(2, 13, 13, 5, 6), y_pred shape :(2, 13, 13, 5, 6), X shape :(2, 416, 416, 3)
 
 	def train(self, sess, save_dir='/tmp', details=False, verbose=True, **kwargs):
 		"""
@@ -89,9 +89,9 @@ class Optimizer(metaclass=ABCMeta):
 		sess.run(tf.global_variables_initializer())	# initialize all weights
 
 		train_results = dict()
-		train_size = self.train_set.num_examples
-		num_steps_per_epoch = train_size // self.batch_size
-		num_steps = self.num_epochs * num_steps_per_epoch
+		train_size = self.train_set.num_examples            # from line 23
+		num_steps_per_epoch = train_size // self.batch_size # t_s // 2
+		num_steps = self.num_epochs * num_steps_per_epoch   # 50 * (t_s // 2)
 		if verbose:
 			print('Running training loop...')
 			print('Number of training iterations: {}'.format(num_steps))
@@ -102,20 +102,20 @@ class Optimizer(metaclass=ABCMeta):
 		# Start training loop
 		for i in range(num_steps):
 			# Perform a gradient update from a single minibatch
-			step_loss, step_y_true, step_y_pred, step_X = self._step(sess, **kwargs)
-			step_losses.append(step_loss)
+			step_loss, step_y_true, step_y_pred, step_X = self._step(sess, **kwargs)  # training 1 step
+			step_losses.append(step_loss)                                             # step_losses shape = (_,)
 			# Perform evaluation in the end of each epoch
-			if (i) % num_steps_per_epoch == 0:
+			if (i) % num_steps_per_epoch == 0:                                        # 에폭이 끝날때 마다(첫 시작 포함)
 				# Evaluate model with current minibatch, from training set
-				step_score = self.evaluator.score(step_y_true, step_y_pred, **kwargs)
-				step_scores.append(step_score)
+				step_score = self.evaluator.score(step_y_true, step_y_pred, **kwargs) # 에폭당 recall 점수 산출, step_score : float
+				step_scores.append(step_score)                                        # step_scores shape = (_,)
 
 				# If validation set is initially given, use if for evaluation
-				if self.val_set is not None:
+				if self.val_set is not None:                                                      # train.py에선 not None
 					# Evaluate model with the validation set
-					eval_y_pred = self.model.predict(sess, self.val_set, verbose=False, **kwargs)
-					eval_score = self.evaluator.score(self.val_set.labels, eval_y_pred, **kwargs)
-					eval_scores.append(eval_score)
+					eval_y_pred = self.model.predict(sess, self.val_set, verbose=False, **kwargs) # val_set predict
+					eval_score = self.evaluator.score(self.val_set.labels, eval_y_pred, **kwargs) # val_set recall 점수 산출
+					eval_scores.append(eval_score)                                                # eval_scores shape : (_,)
 
 					if verbose:
 						# Print intermediate results
@@ -140,13 +140,13 @@ class Optimizer(metaclass=ABCMeta):
 
 				if self.evaluator.is_better(curr_score, self.best_score, **kwargs):
 					self.best_score = curr_score
-					self.num_bad_epochs = 0
-					saver.save(sess, os.path.join(save_dir, 'model.ckpt'))
+					self.num_bad_epochs = 0                                # improvement 되었기 때문에 초기화
+					saver.save(sess, os.path.join(save_dir, 'model.ckpt')) # 더 좋아진 파라미터들 저장
 				else:
 					self.num_bad_epochs += 1
 
 				self._update_learning_rate(**kwargs)
-				self.curr_epoch += 1
+				self.curr_epoch += 1  # epoch 카운팅
 
 		if verbose:
 			print('Total training time(sec): {}'.format(time.time() - start_time))
@@ -176,7 +176,7 @@ class MomentumOptimizer(Optimizer):
 		momentum = kwargs.pop('momentum', 0.9)
 		extra_update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 		update_vars = tf.trainable_variables()
-		with tf.control_dependencies(extra_update_ops):
+		with tf.control_dependencies(extra_update_ops):  # optimizer가 갑자기 Adam? 바꿔야 하나... 결과 그래프도 Adam이 적용된건가
 			train_op = tf.train.AdamOptimizer(self.learning_rate_placeholder, momentum).minimize(self.model.loss, var_list=update_vars)
 		return train_op
 
@@ -188,16 +188,16 @@ class MomentumOptimizer(Optimizer):
 			- learning_rate_decay: float, factor by which the learning rate will be updated.
 			-eps: float, if the difference between new and old learning rate is smller than eps, the update is ignored.
 		"""
-		learning_rate_patience = kwargs.pop('learning_rate_patience', 10)
-		learning_rate_decay = kwargs.pop('learning_rate_decay', 0.1)
-		eps = kwargs.pop('eps', 1e-8)
+		learning_rate_patience = kwargs.pop('learning_rate_patience', 10) # 10 from train.py line 36
+		learning_rate_decay = kwargs.pop('learning_rate_decay', 0.1)      # 0.1 from train.py line 37
+		eps = kwargs.pop('eps', 1e-8)                                     # 1e-8 from train.py line 38
 
-		if self.num_bad_epochs > learning_rate_patience:
-			new_learning_rate = self.curr_learning_rate * learning_rate_decay
+		if self.num_bad_epochs > learning_rate_patience:                      # 10번이상 bad_epoch이 연속될 때
+			new_learning_rate = self.curr_learning_rate * learning_rate_decay # 원래보다 1/10 된 learning_rate를 사용할 지 고려대상으로 삼는다
 			# Decay learning rate only when the difference is higher than epsilon.
-			if self.curr_learning_rate - new_learning_rate > eps:
-				self.curr_learning_rate = new_learning_rate
-			self.num_bad_epochs = 0
+			if self.curr_learning_rate - new_learning_rate > eps:             # 현재 고려대상과의 차이가 eps를 넘는다면
+				self.curr_learning_rate = new_learning_rate                   # learning_rate 를 고려대상과 교체하고
+			self.num_bad_epochs = 0                                           # bad_epochs를 초기화 한다
 
 class AdamOptimizer(Optimizer):
 	"""Gradient descent optimizer, with Momentum algorithm."""
